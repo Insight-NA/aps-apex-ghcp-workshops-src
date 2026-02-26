@@ -1,0 +1,16 @@
+{
+  "name": "road-trip-image-agent-tools",
+  "version": "0.1.0",
+  "description": "CLI utilities used by the image-manager Copilot agent to analyze and manage image assets.",
+  "private": true,
+  "main": "index.js",
+  "bin": {
+    "image-agent-analyze": "./index.js"
+  },
+  "scripts": {
+    "analyze-images": "node index.js"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

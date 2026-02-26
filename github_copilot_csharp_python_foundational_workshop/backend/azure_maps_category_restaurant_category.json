@@ -1,0 +1,16 @@
+{
+  "summary": {
+    "query": "7315",
+    "queryType": "NON_NEAR",
+    "queryTime": 23,
+    "numResults": 0,
+    "offset": 0,
+    "totalResults": 0,
+    "fuzzyLevel": 3,
+    "geoBias": {
+      "lat": 39.0997,
+      "lon": -94.5786
+    }
+  },
+  "results": []
+}

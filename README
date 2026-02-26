@@ -1,0 +1,21 @@
+# GitHub Copilot Workshops - Sample Code & Training Materials
+
+This repository contains sample code and workshop materials to accompany GitHub Copilot training sessions.
+
+## Workshops
+
+### Foundational Training
+
+| Folder | Audience | Description |
+|--------|----------|-------------|
+| `github_copilot_csharp_python_foundational_workshop/` | C# and Python developers | Hands-on foundational workshop covering core GitHub Copilot features and workflows using a polyglot road trip planning application |
+
+## About
+
+The sample application used throughout these workshops is a **Road Trip Planner** — a microservices-based app built with multiple backend technologies (Python/FastAPI, C#/ASP.NET, Java/Spring Boot), a React frontend, and a Node.js BFF (Backend for Frontend). It demonstrates real-world patterns and provides a realistic codebase for exploring GitHub Copilot's capabilities.
+
+## Getting Started
+
+Each workshop folder contains its own documentation and setup instructions. See the `README` or `docs/` directory within each workshop folder for details.
+
+Start with `docs/workshops/` and then view the workshops that you want to review.

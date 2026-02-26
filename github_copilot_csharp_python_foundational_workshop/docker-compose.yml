@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # ── Database ──
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: roadtrip
+      POSTGRES_USER: roadtrip
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-roadtrip_dev}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U roadtrip"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── BFF API Gateway (Node.js / Express) ──
+  bff:
+    build: ./bff
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - PYTHON_BACKEND_URL=http://backend-python:8000
+      - CSHARP_BACKEND_URL=http://backend-csharp:8081
+      - JAVA_BACKEND_URL=http://backend-java:8082
+      - ALLOWED_ORIGINS=http://localhost:5173
+    depends_on:
+      backend-python:
+        condition: service_started
+      backend-csharp:
+        condition: service_started
+      backend-java:
+        condition: service_started
+
+  # ── Python Backend (FastAPI) — Trips, Auth, Vehicle Specs Fallback ──
+  backend-python:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://roadtrip:${POSTGRES_PASSWORD:-roadtrip_dev}@postgres:5432/roadtrip
+      - MAPBOX_TOKEN=${MAPBOX_TOKEN}
+      - AZURE_MAPS_KEY=${AZURE_MAPS_KEY}
+      - AI_SERVICE_URL=http://backend-csharp:8081
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── C# Backend (ASP.NET Web API) — AI Vehicle Parsing & Trip Generation ──
+  backend-csharp:
+    build: ./backend-csharp
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:-}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY:-}
+      - AZURE_OPENAI_DEPLOYMENT=${AZURE_OPENAI_DEPLOYMENT:-}
+      - ALLOWED_ORIGINS=http://localhost:3000
+
+  # ── Java Backend (Spring Boot) — Geospatial Services ──
+  backend-java:
+    build: ./backend-java
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+      - MAPBOX_TOKEN=${MAPBOX_TOKEN}
+      - AZURE_MAPS_KEY=${AZURE_MAPS_KEY}
+      - ALLOWED_ORIGINS=http://localhost:3000
+
+  # ── Frontend (React + Vite → Nginx) ──
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=http://localhost:3000
+        - VITE_MAPBOX_TOKEN=${VITE_MAPBOX_TOKEN}
+    ports:
+      - "5173:80"
+    depends_on:
+      - bff
+
+volumes:
+  pgdata:
+

@@ -1,0 +1,41 @@
+{
+  "routes": [
+    {
+      "weight_name": "routability",
+      "weight": 2954.5,
+      "duration": 2698.5,
+      "distance": 48762.3,
+      "legs": [
+        {
+          "summary": "I-80 E, US-101 S",
+          "weight": 2954.5,
+          "duration": 2698.5,
+          "steps": [],
+          "distance": 48762.3
+        }
+      ],
+      "geometry": {
+        "coordinates": [
+          [-122.4194, 37.7749],
+          [-122.4183, 37.7745],
+          [-122.0838, 37.3861]
+        ],
+        "type": "LineString"
+      }
+    }
+  ],
+  "waypoints": [
+    {
+      "distance": 4.125,
+      "name": "Market Street",
+      "location": [-122.4194, 37.7749]
+    },
+    {
+      "distance": 2.456,
+      "name": "Castro Street",
+      "location": [-122.0838, 37.3861]
+    }
+  ],
+  "code": "Ok",
+  "uuid": "cjlx7x7v600003jpfq8bhkw75"
+}

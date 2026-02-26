@@ -1,0 +1,12 @@
+{
+  "themes": {
+    "route66": {
+      "day": {
+        "background": "/backgrounds/route66/day.jpg"
+      },
+      "night": {
+        "background": "/backgrounds/route66/night.jpg"
+      }
+    }
+  }
+}

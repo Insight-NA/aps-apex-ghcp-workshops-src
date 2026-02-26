@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Road Trip Planner",
+    "slug": "road-trip-planner",
+    "version": "1.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.roadtrip.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to show your position on the map and help plan trips.",
+        "NSLocationAlwaysUsageDescription": "We need your location to show your position on the map and help plan trips."
+      }
+    },
+    "android": {
+      "package": "com.roadtrip.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDummy_PlaceholderKey_Replace"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Road Trip Planner to use your location."
+        }
+      ]
+    ]
+  }
+}

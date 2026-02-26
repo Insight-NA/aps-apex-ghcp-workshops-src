@@ -1,0 +1,861 @@
+{
+  "summary": {
+    "query": "gas station",
+    "queryType": "NON_NEAR",
+    "queryTime": 393,
+    "numResults": 10,
+    "offset": 0,
+    "totalResults": 100,
+    "fuzzyLevel": 1,
+    "geoBias": {
+      "lat": 39.0997,
+      "lon": -94.5786
+    },
+    "queryIntent": []
+  },
+  "results": [
+    {
+      "type": "POI",
+      "id": "sA4qPdB4ljwDgW7zcwi5yg",
+      "score": 0.9410039186,
+      "dist": 1932.161871,
+      "info": "search:ta:840299000466791-US",
+      "poi": {
+        "name": "Bp",
+        "phone": "+1 816-474-2110",
+        "brands": [
+          {
+            "name": "BP"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7311
+          }
+        ],
+        "categories": [
+          "petrol station"
+        ],
+        "classifications": [
+          {
+            "code": "PETROL_STATION",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "petrol station"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1900",
+        "streetName": "Independence Avenue",
+        "municipality": "Kansas City",
+        "neighbourhood": "Pendleton Heights",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64124",
+        "extendedPostalCode": "64124-2308",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1900 Independence Avenue, Kansas City, MO 64124",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.106784,
+        "lon": -94.558154
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10768,
+          "lon": -94.55931
+        },
+        "btmRightPoint": {
+          "lat": 39.10588,
+          "lon": -94.557
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10657,
+            "lon": -94.55836
+          }
+        },
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10657,
+            "lon": -94.55816
+          }
+        }
+      ],
+      "fuelTypes": [
+        "Petrol"
+      ],
+      "vehicleTypes": [
+        "Car"
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "6w2yYomTuEl2PEOKFOmDgw",
+      "score": 0.9376531243,
+      "dist": 1288.158974,
+      "info": "search:ta:840291000007793-US",
+      "poi": {
+        "name": "Bp",
+        "phone": "+1 816-221-7889",
+        "brands": [
+          {
+            "name": "BP"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7311
+          }
+        ],
+        "categories": [
+          "petrol station"
+        ],
+        "classifications": [
+          {
+            "code": "PETROL_STATION",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "petrol station"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1500",
+        "streetName": "Paseo Boulevard",
+        "municipality": "Kansas City",
+        "neighbourhood": "Beacon Hills",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64108",
+        "extendedPostalCode": "64108-1622",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1500 Paseo Boulevard, Kansas City, MO 64108",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.094936,
+        "lon": -94.564993
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.09584,
+          "lon": -94.56615
+        },
+        "btmRightPoint": {
+          "lat": 39.09404,
+          "lon": -94.56383
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09501,
+            "lon": -94.56456
+          }
+        }
+      ],
+      "fuelTypes": [
+        "Diesel",
+        "Petrol"
+      ],
+      "vehicleTypes": [
+        "Car"
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "76k6b0sHoRkFx9x9iBNnCA",
+      "score": 0.9364246726,
+      "dist": 2645.418587,
+      "info": "search:ta:840297000021856-US",
+      "poi": {
+        "name": "Shell",
+        "phone": "+1 816-241-7488",
+        "brands": [
+          {
+            "name": "Shell"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7311
+          }
+        ],
+        "url": "www.shell.us/",
+        "categories": [
+          "petrol station"
+        ],
+        "classifications": [
+          {
+            "code": "PETROL_STATION",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "petrol station"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1800",
+        "streetName": "Benton Boulevard",
+        "municipality": "Kansas City",
+        "neighbourhood": "Washington Weatley",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64127",
+        "extendedPostalCode": "64127-3114",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1800 Benton Boulevard, Kansas City, MO 64127",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.090482,
+        "lon": -94.55034
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.09138,
+          "lon": -94.5515
+        },
+        "btmRightPoint": {
+          "lat": 39.08958,
+          "lon": -94.54918
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09056,
+            "lon": -94.54963
+          }
+        }
+      ],
+      "fuelTypes": [
+        "Diesel",
+        "Petrol"
+      ],
+      "vehicleTypes": [
+        "Car"
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "_EbfD4cnl4DPZEaK1_OTng",
+      "score": 0.9306860566,
+      "dist": 3347.574349,
+      "info": "search:ta:840296000240302-US",
+      "poi": {
+        "name": "Bp",
+        "phone": "+1 816-582-1458",
+        "brands": [
+          {
+            "name": "BP"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7311
+          }
+        ],
+        "url": "map.bp.com/en-US/US/gas-station/kansas-city/bp/128009",
+        "categories": [
+          "petrol station"
+        ],
+        "classifications": [
+          {
+            "code": "PETROL_STATION",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "petrol station"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "2641",
+        "streetName": "Prospect Avenue",
+        "municipality": "Kansas City",
+        "neighbourhood": "Washington Weatley",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64127",
+        "extendedPostalCode": "64127-3946",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "2641 Prospect Avenue, Kansas City, MO 64127",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.077703,
+        "lon": -94.552119
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.0786,
+          "lon": -94.55328
+        },
+        "btmRightPoint": {
+          "lat": 39.0768,
+          "lon": -94.55096
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.07772,
+            "lon": -94.55246
+          }
+        }
+      ],
+      "fuelTypes": [
+        "Petrol"
+      ],
+      "vehicleTypes": [
+        "Car"
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "aHKp0GZg-Kr4b78FOqN9Ww",
+      "score": 0.9273718596,
+      "dist": 1711.299033,
+      "info": "search:ta:840296000240303-US",
+      "poi": {
+        "name": "Conoco",
+        "phone": "+1 816-221-8118",
+        "brands": [
+          {
+            "name": "Conoco"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7311
+          }
+        ],
+        "url": "www.7-eleven.com/locations/mo/kansas-city/1701-independence-ave-16106",
+        "categories": [
+          "petrol station"
+        ],
+        "classifications": [
+          {
+            "code": "PETROL_STATION",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "petrol station"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1701",
+        "streetName": "Independence Avenue",
+        "municipality": "Kansas City",
+        "neighbourhood": "Parkview",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-1454",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1701 Independence Avenue, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.106491,
+        "lon": -94.560803
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10739,
+          "lon": -94.56196
+        },
+        "btmRightPoint": {
+          "lat": 39.10559,
+          "lon": -94.55964
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10667,
+            "lon": -94.56113
+          }
+        }
+      ],
+      "fuelTypes": [
+        "Diesel",
+        "Petrol",
+        "LPG"
+      ],
+      "vehicleTypes": [
+        "Car"
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "vFghpVC9B-WofIfd-HbFww",
+      "score": 0.9273718596,
+      "dist": 2021.48685,
+      "info": "search:ta:840296000240300-US",
+      "poi": {
+        "name": "Conoco",
+        "phone": "+1 816-456-7675",
+        "brands": [
+          {
+            "name": "Conoco"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7311
+          }
+        ],
+        "url": "www.conoco.com/",
+        "categories": [
+          "petrol station"
+        ],
+        "classifications": [
+          {
+            "code": "PETROL_STATION",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "petrol station"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "2200",
+        "streetName": "East Truman Road",
+        "municipality": "Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64127",
+        "extendedPostalCode": "64127-2035",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "2200 East Truman Road, Kansas City, MO 64127",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.095102,
+        "lon": -94.555937
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.096,
+          "lon": -94.5571
+        },
+        "btmRightPoint": {
+          "lat": 39.0942,
+          "lon": -94.55478
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09488,
+            "lon": -94.55594
+          }
+        }
+      ],
+      "fuelTypes": [
+        "Petrol"
+      ],
+      "vehicleTypes": [
+        "Car"
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "KC5xcprFzoN_2E7e60R3Bw",
+      "score": 0.9248754382,
+      "dist": 3769.801078,
+      "info": "search:ta:840299001787585-US",
+      "poi": {
+        "name": "Shell",
+        "phone": "+1 816-381-6149",
+        "brands": [
+          {
+            "name": "Shell"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7311
+          }
+        ],
+        "url": "www.shell.us/",
+        "categories": [
+          "petrol station"
+        ],
+        "classifications": [
+          {
+            "code": "PETROL_STATION",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "petrol station"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "2202",
+        "streetName": "East 31st Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Key Coalition",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64109",
+        "extendedPostalCode": "64109-1640",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "2202 East 31st Street, Kansas City, MO 64109",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.070212,
+        "lon": -94.557048
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.07111,
+          "lon": -94.55821
+        },
+        "btmRightPoint": {
+          "lat": 39.06931,
+          "lon": -94.55589
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.06999,
+            "lon": -94.55705
+          }
+        }
+      ],
+      "fuelTypes": [
+        "Diesel",
+        "Petrol"
+      ],
+      "vehicleTypes": [
+        "Car"
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "MJGq7MAE9vVcMEOWihkuog",
+      "score": 0.9240837097,
+      "dist": 2116.739335,
+      "info": "search:ta:840299000856579-US",
+      "poi": {
+        "name": "Conoco",
+        "phone": "+1 816-474-8844",
+        "brands": [
+          {
+            "name": "Conoco"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7311
+          }
+        ],
+        "url": "www.conoco.com/station/con-power-66-0000907782/",
+        "categories": [
+          "petrol station"
+        ],
+        "classifications": [
+          {
+            "code": "PETROL_STATION",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "petrol station"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1509",
+        "streetName": "West 12th Street",
+        "municipality": "Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64101",
+        "extendedPostalCode": "64101-1306",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1509 West 12th Street, Kansas City, MO 64101",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.100007,
+        "lon": -94.603127
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10091,
+          "lon": -94.60429
+        },
+        "btmRightPoint": {
+          "lat": 39.09911,
+          "lon": -94.60197
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10028,
+            "lon": -94.60321
+          }
+        },
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10027,
+            "lon": -94.60323
+          }
+        }
+      ],
+      "fuelTypes": [
+        "Diesel",
+        "Petrol"
+      ],
+      "vehicleTypes": [
+        "Car"
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "Wl3HLCq1sk3pkCp5ibK3VA",
+      "score": 0.9179700017,
+      "dist": 3081.949156,
+      "info": "search:ta:840299002746951-US",
+      "poi": {
+        "name": "Conoco",
+        "phone": "+1 816-786-7255",
+        "brands": [
+          {
+            "name": "Conoco"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7311
+          }
+        ],
+        "url": "www.conoco.com/",
+        "categories": [
+          "petrol station"
+        ],
+        "classifications": [
+          {
+            "code": "PETROL_STATION",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "petrol station"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1001",
+        "streetName": "Burlington Street",
+        "municipality": "North Kansas City",
+        "countrySecondarySubdivision": "Clay",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64116",
+        "extendedPostalCode": "64116-4122",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1001 Burlington Street, Kansas City, MO 64116",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.127384,
+        "lon": -94.580328
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.12828,
+          "lon": -94.58149
+        },
+        "btmRightPoint": {
+          "lat": 39.12648,
+          "lon": -94.57917
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.1274,
+            "lon": -94.58055
+          }
+        },
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.12743,
+            "lon": -94.58055
+          }
+        }
+      ],
+      "fuelTypes": [
+        "Diesel",
+        "Petrol"
+      ],
+      "vehicleTypes": [
+        "Car"
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "0zgp5X5hudeOrZaoHsLoEg",
+      "score": 0.9161150455,
+      "dist": 4616.952505,
+      "info": "search:ta:840291000007157-US",
+      "poi": {
+        "name": "Shell",
+        "phone": "+1 816-555-5555",
+        "brands": [
+          {
+            "name": "Shell"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7311
+          }
+        ],
+        "url": "www.shell.us/",
+        "categories": [
+          "petrol station"
+        ],
+        "classifications": [
+          {
+            "code": "PETROL_STATION",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "petrol station"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "3742",
+        "streetName": "Main Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Hanover Place",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64111",
+        "extendedPostalCode": "64111-1913",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "3742 Main Street, Kansas City, MO 64111",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.058605,
+        "lon": -94.586245
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.0595,
+          "lon": -94.5874
+        },
+        "btmRightPoint": {
+          "lat": 39.05771,
+          "lon": -94.58509
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.05928,
+            "lon": -94.58594
+          }
+        }
+      ],
+      "fuelTypes": [
+        "Petrol"
+      ],
+      "vehicleTypes": [
+        "Car"
+      ]
+    }
+  ]
+}

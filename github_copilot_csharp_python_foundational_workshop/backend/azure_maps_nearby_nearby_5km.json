@@ -1,0 +1,746 @@
+{
+  "summary": {
+    "queryType": "NEARBY",
+    "queryTime": 67,
+    "numResults": 10,
+    "offset": 0,
+    "totalResults": 100,
+    "fuzzyLevel": 1,
+    "geoBias": {
+      "lat": 39.0997,
+      "lon": -94.5786
+    }
+  },
+  "results": [
+    {
+      "type": "POI",
+      "id": "ScK_Dw496kZ6ZarKY_k_tQ",
+      "score": 99.9958877563,
+      "dist": 4.111502,
+      "info": "search:ta:840296000185501-US",
+      "poi": {
+        "name": "Teriyaki Madness City",
+        "brands": [
+          {
+            "name": "Teriyaki Madness"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7315015
+          }
+        ],
+        "url": "teriyakimadness.com/",
+        "categories": [
+          "fast food",
+          "restaurant"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "fast food"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetName": "Oak Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "Oak Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.099726,
+        "lon": -94.578567
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09973,
+            "lon": -94.57856
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "NFI37Iw-zjJbVDbUeSFAaQ",
+      "score": 99.9958877563,
+      "dist": 4.111502,
+      "info": "search:ta:840299001428910-US",
+      "poi": {
+        "name": "Pakpros Professional Movers",
+        "phone": "+1 816-609-7995",
+        "categorySet": [
+          {
+            "id": 9352033
+          }
+        ],
+        "categories": [
+          "company",
+          "moving storage"
+        ],
+        "classifications": [
+          {
+            "code": "COMPANY",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "company"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "moving storage"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1224",
+        "streetName": "E 30Th St",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64109",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1224 E 30Th St, Kansas City, MO 64109",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.099726,
+        "lon": -94.578567
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09973,
+            "lon": -94.57856
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "vfd4qFU4sg56Wh-1Iwn6-g",
+      "score": 99.9958877563,
+      "dist": 4.111502,
+      "info": "search:ta:840296000178887-US",
+      "poi": {
+        "name": "Globalb2bcontacts",
+        "phone": "+1 816-286-4114",
+        "categorySet": [
+          {
+            "id": 9352003
+          }
+        ],
+        "categories": [
+          "advertising/marketing",
+          "company"
+        ],
+        "classifications": [
+          {
+            "code": "COMPANY",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "company"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "advertising/marketing"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "9030",
+        "streetName": "Charlotte St",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64131",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "9030 Charlotte St, Kansas City, MO 64131",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.099726,
+        "lon": -94.578567
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09973,
+            "lon": -94.57856
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "Emvj38977AnURGCaj-55Ug",
+      "score": 99.9958648682,
+      "dist": 4.1322,
+      "info": "search:ta:840297000037454-US",
+      "poi": {
+        "name": "Uhaunted",
+        "phone": "+1 913-205-9775",
+        "categorySet": [
+          {
+            "id": 9352
+          }
+        ],
+        "url": "uhaunted.com",
+        "categories": [
+          "company"
+        ],
+        "classifications": [
+          {
+            "code": "COMPANY",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "company"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetName": "Oak Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "66062",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "Oak Street, Kansas City, MO 66062",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.099727,
+        "lon": -94.578567
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09973,
+            "lon": -94.57856
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "iEHGdwfU5k_HQXDkmkARug",
+      "score": 99.9957809448,
+      "dist": 4.217503,
+      "info": "search:ta:840296000269392-US",
+      "poi": {
+        "name": "Saint Teresa Academy",
+        "phone": "+1 816-501-0011",
+        "categorySet": [
+          {
+            "id": 7372002
+          }
+        ],
+        "url": "stteresasacademy.org/",
+        "categories": [
+          "school"
+        ],
+        "classifications": [
+          {
+            "code": "SCHOOL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "school"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetName": "East 12th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2412",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "East 12th Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.09973,
+        "lon": -94.57857
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09979,
+            "lon": -94.57857
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "3CoHO5B5jhelxOL3VNsaBQ",
+      "score": 99.9957809448,
+      "dist": 4.217503,
+      "info": "search:ta:840296000277383-US",
+      "poi": {
+        "name": "Marie's Giftique",
+        "phone": "+1 816-602-0418",
+        "categorySet": [
+          {
+            "id": 9361026
+          }
+        ],
+        "url": "mariesgiftique.com/",
+        "categories": [
+          "gifts, cards, novelties souvenirs",
+          "shop"
+        ],
+        "classifications": [
+          {
+            "code": "SHOP",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "gifts, cards, novelties souvenirs"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "shop"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetName": "East 12th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2412",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "East 12th Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.09973,
+        "lon": -94.57857
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09979,
+            "lon": -94.57857
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "_IgKs9RZDPSXxZcNE9qFXg",
+      "score": 99.9957809448,
+      "dist": 4.217503,
+      "info": "search:ta:840296000182400-US",
+      "poi": {
+        "name": "Body & Soul KC",
+        "phone": "+1 816-363-8282",
+        "categorySet": [
+          {
+            "id": 7320002
+          }
+        ],
+        "url": "www.bodyandsoulkc.com/",
+        "categories": [
+          "fitness club center",
+          "sports center"
+        ],
+        "classifications": [
+          {
+            "code": "SPORTS_CENTER",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "fitness club center"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "sports center"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetName": "East 12th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2412",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "East 12th Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.09973,
+        "lon": -94.57857
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09979,
+            "lon": -94.57857
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "901yLTi8KM1roNgpL1BOwA",
+      "score": 99.9957809448,
+      "dist": 4.217503,
+      "info": "search:ta:840296000272263-US",
+      "poi": {
+        "name": "Gorozzo",
+        "categorySet": [
+          {
+            "id": 7315
+          }
+        ],
+        "categories": [
+          "restaurant"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetName": "East 12th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2412",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "East 12th Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.09973,
+        "lon": -94.57857
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09979,
+            "lon": -94.57857
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "qx7TKp5MvjOHvswR_4Etlg",
+      "score": 99.9957809448,
+      "dist": 4.217503,
+      "info": "search:ta:840296000182814-US",
+      "poi": {
+        "name": "Ashlee Were",
+        "categorySet": [
+          {
+            "id": 7320002
+          }
+        ],
+        "categories": [
+          "fitness club center",
+          "sports center"
+        ],
+        "classifications": [
+          {
+            "code": "SPORTS_CENTER",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "fitness club center"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "sports center"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetName": "East 12th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2412",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "East 12th Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.09973,
+        "lon": -94.57857
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09979,
+            "lon": -94.57857
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "a7u2A6kZvmfC-7WkOEw0Iw",
+      "score": 99.9957809448,
+      "dist": 4.217503,
+      "info": "search:ta:840296000190909-US",
+      "poi": {
+        "name": "Swope Park",
+        "categorySet": [
+          {
+            "id": 9362008
+          }
+        ],
+        "url": "kcparks.org/park/swope-park-off-leash-area/",
+        "categories": [
+          "park",
+          "park recreation area"
+        ],
+        "classifications": [
+          {
+            "code": "PARK_RECREATION_AREA",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "park recreation area"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "park"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetName": "East 12th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2412",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "East 12th Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.09973,
+        "lon": -94.57857
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09979,
+            "lon": -94.57857
+          }
+        }
+      ]
+    }
+  ]
+}

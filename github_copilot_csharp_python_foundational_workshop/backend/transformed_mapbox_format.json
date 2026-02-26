@@ -1,0 +1,204 @@
+{
+  "features": [
+    {
+      "id": "sA4qPdB4ljwDgW7zcwi5yg",
+      "type": "Feature",
+      "text": "Bp",
+      "place_name": "1900 Independence Avenue, Kansas City, MO 64124",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.558154,
+          39.106784
+        ]
+      },
+      "properties": {
+        "categories": [
+          "petrol station"
+        ],
+        "phone": "+1 816-474-2110",
+        "score": 0.9410039186
+      }
+    },
+    {
+      "id": "6w2yYomTuEl2PEOKFOmDgw",
+      "type": "Feature",
+      "text": "Bp",
+      "place_name": "1500 Paseo Boulevard, Kansas City, MO 64108",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.564993,
+          39.094936
+        ]
+      },
+      "properties": {
+        "categories": [
+          "petrol station"
+        ],
+        "phone": "+1 816-221-7889",
+        "score": 0.9376531243
+      }
+    },
+    {
+      "id": "76k6b0sHoRkFx9x9iBNnCA",
+      "type": "Feature",
+      "text": "Shell",
+      "place_name": "1800 Benton Boulevard, Kansas City, MO 64127",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.55034,
+          39.090482
+        ]
+      },
+      "properties": {
+        "categories": [
+          "petrol station"
+        ],
+        "phone": "+1 816-241-7488",
+        "score": 0.9364246726
+      }
+    },
+    {
+      "id": "_EbfD4cnl4DPZEaK1_OTng",
+      "type": "Feature",
+      "text": "Bp",
+      "place_name": "2641 Prospect Avenue, Kansas City, MO 64127",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.552119,
+          39.077703
+        ]
+      },
+      "properties": {
+        "categories": [
+          "petrol station"
+        ],
+        "phone": "+1 816-582-1458",
+        "score": 0.9306860566
+      }
+    },
+    {
+      "id": "aHKp0GZg-Kr4b78FOqN9Ww",
+      "type": "Feature",
+      "text": "Conoco",
+      "place_name": "1701 Independence Avenue, Kansas City, MO 64106",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.560803,
+          39.106491
+        ]
+      },
+      "properties": {
+        "categories": [
+          "petrol station"
+        ],
+        "phone": "+1 816-221-8118",
+        "score": 0.9273718596
+      }
+    },
+    {
+      "id": "vFghpVC9B-WofIfd-HbFww",
+      "type": "Feature",
+      "text": "Conoco",
+      "place_name": "2200 East Truman Road, Kansas City, MO 64127",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.555937,
+          39.095102
+        ]
+      },
+      "properties": {
+        "categories": [
+          "petrol station"
+        ],
+        "phone": "+1 816-456-7675",
+        "score": 0.9273718596
+      }
+    },
+    {
+      "id": "KC5xcprFzoN_2E7e60R3Bw",
+      "type": "Feature",
+      "text": "Shell",
+      "place_name": "2202 East 31st Street, Kansas City, MO 64109",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.557048,
+          39.070212
+        ]
+      },
+      "properties": {
+        "categories": [
+          "petrol station"
+        ],
+        "phone": "+1 816-381-6149",
+        "score": 0.9248754382
+      }
+    },
+    {
+      "id": "MJGq7MAE9vVcMEOWihkuog",
+      "type": "Feature",
+      "text": "Conoco",
+      "place_name": "1509 West 12th Street, Kansas City, MO 64101",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.603127,
+          39.100007
+        ]
+      },
+      "properties": {
+        "categories": [
+          "petrol station"
+        ],
+        "phone": "+1 816-474-8844",
+        "score": 0.9240837097
+      }
+    },
+    {
+      "id": "Wl3HLCq1sk3pkCp5ibK3VA",
+      "type": "Feature",
+      "text": "Conoco",
+      "place_name": "1001 Burlington Street, Kansas City, MO 64116",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.580328,
+          39.127384
+        ]
+      },
+      "properties": {
+        "categories": [
+          "petrol station"
+        ],
+        "phone": "+1 816-786-7255",
+        "score": 0.9179700017
+      }
+    },
+    {
+      "id": "0zgp5X5hudeOrZaoHsLoEg",
+      "type": "Feature",
+      "text": "Shell",
+      "place_name": "3742 Main Street, Kansas City, MO 64111",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.586245,
+          39.058605
+        ]
+      },
+      "properties": {
+        "categories": [
+          "petrol station"
+        ],
+        "phone": "+1 816-555-5555",
+        "score": 0.9161150455
+      }
+    }
+  ]
+}

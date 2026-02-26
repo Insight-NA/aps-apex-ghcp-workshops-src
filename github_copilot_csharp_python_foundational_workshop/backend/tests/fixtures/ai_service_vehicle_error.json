@@ -1,0 +1,5 @@
+{
+  "error": "Service temporarily unavailable",
+  "code": 503,
+  "details": "AI service is currently experiencing high load. Please try again later."
+}

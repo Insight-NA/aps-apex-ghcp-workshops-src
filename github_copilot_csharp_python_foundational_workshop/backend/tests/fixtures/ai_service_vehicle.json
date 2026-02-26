@@ -1,0 +1,14 @@
+{
+  "specs": {
+    "height": 3.8,
+    "width": 2.6,
+    "length": 10.0,
+    "weight": 12000
+  },
+  "confidence": 0.92,
+  "vehicleType": "rv_large",
+  "metadata": {
+    "processingTime": 0.342,
+    "model": "gemini-2.0-flash-exp"
+  }
+}

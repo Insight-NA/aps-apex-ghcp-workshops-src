@@ -1,0 +1,148 @@
+{
+  "summary": {
+    "query": "coffee",
+    "queryType": "NON_NEAR",
+    "queryTime": 142,
+    "numResults": 3,
+    "offset": 0,
+    "totalResults": 127,
+    "fuzzyLevel": 1
+  },
+  "results": [
+    {
+      "type": "POI",
+      "id": "US/POI/p0/123456",
+      "score": 4.8,
+      "dist": 125.5,
+      "info": "search:ta:840539001234567-US",
+      "poi": {
+        "name": "Blue Bottle Coffee",
+        "categorySet": [
+          {
+            "id": 9376001
+          }
+        ],
+        "categories": ["coffee shop", "cafe"],
+        "classifications": [
+          {
+            "code": "COFFEE_SHOP",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "coffee shop"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "66",
+        "streetName": "Mint St",
+        "municipalitySubdivision": "SoMa",
+        "municipality": "San Francisco",
+        "countrySecondarySubdivision": "San Francisco",
+        "countrySubdivision": "CA",
+        "postalCode": "94103",
+        "extendedPostalCode": "94103-2343",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "66 Mint St, San Francisco, CA 94103",
+        "localName": "San Francisco"
+      },
+      "position": {
+        "lat": 37.7819,
+        "lon": -122.4094
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 37.7828,
+          "lon": -122.4108
+        },
+        "btmRightPoint": {
+          "lat": 37.781,
+          "lon": -122.408
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 37.7819,
+            "lon": -122.4095
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "US/POI/p0/234567",
+      "score": 4.6,
+      "dist": 342.8,
+      "poi": {
+        "name": "Starbucks",
+        "categories": ["coffee shop"],
+        "classifications": [
+          {
+            "code": "COFFEE_SHOP",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "coffee shop"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "201",
+        "streetName": "Mission St",
+        "municipality": "San Francisco",
+        "countrySubdivision": "CA",
+        "postalCode": "94105",
+        "countryCode": "US",
+        "country": "United States",
+        "freeformAddress": "201 Mission St, San Francisco, CA 94105"
+      },
+      "position": {
+        "lat": 37.7895,
+        "lon": -122.3971
+      }
+    },
+    {
+      "type": "POI",
+      "id": "US/POI/p0/345678",
+      "score": 4.2,
+      "dist": 578.3,
+      "poi": {
+        "name": "Philz Coffee",
+        "categories": ["coffee shop", "cafe"],
+        "classifications": [
+          {
+            "code": "COFFEE_SHOP",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "coffee shop"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "298",
+        "streetName": "3rd St",
+        "municipality": "San Francisco",
+        "countrySubdivision": "CA",
+        "postalCode": "94107",
+        "countryCode": "US",
+        "country": "United States",
+        "freeformAddress": "298 3rd St, San Francisco, CA 94107"
+      },
+      "position": {
+        "lat": 37.7823,
+        "lon": -122.3967
+      }
+    }
+  ]
+}

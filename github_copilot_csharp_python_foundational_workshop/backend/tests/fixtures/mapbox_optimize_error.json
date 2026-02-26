@@ -1,0 +1,4 @@
+{
+  "code": "InvalidInput",
+  "message": "Number of coordinates must be between 2 and 12"
+}

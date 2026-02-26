@@ -1,0 +1,842 @@
+{
+  "summary": {
+    "query": "hotel",
+    "queryType": "NON_NEAR",
+    "queryTime": 302,
+    "numResults": 10,
+    "offset": 0,
+    "totalResults": 100,
+    "fuzzyLevel": 1,
+    "geoBias": {
+      "lat": 39.0997,
+      "lon": -94.5786
+    },
+    "queryIntent": []
+  },
+  "results": [
+    {
+      "type": "POI",
+      "id": "Fh0eLZSf_EuIEMCvswwxnA",
+      "score": 0.9896067977,
+      "dist": 163.569536,
+      "info": "search:ta:840298000068528-US",
+      "poi": {
+        "name": "Holiday Inn Express Downtown",
+        "phone": "+1 816-474-1000",
+        "brands": [
+          {
+            "name": "Holiday Inn Express"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7314003
+          }
+        ],
+        "url": "www.ihg.com/holidayinnexpress/hotels/us/en/kansas-city/mkctd/hoteldetail",
+        "categories": [
+          "hotel",
+          "hotel/motel"
+        ],
+        "classifications": [
+          {
+            "code": "HOTEL_MOTEL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "hotel"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "hotel/motel"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "417",
+        "streetName": "East 13th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2802",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "417 East 13th Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.09836,
+        "lon": -94.577818
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.09926,
+          "lon": -94.57898
+        },
+        "btmRightPoint": {
+          "lat": 39.09746,
+          "lon": -94.57666
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09844,
+            "lon": -94.57782
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "IBKxcETqSwgjZY4WzocpIw",
+      "score": 0.9863849282,
+      "dist": 536.286033,
+      "info": "search:ta:840298000052113-US",
+      "poi": {
+        "name": "Hilton President Kansas City",
+        "phone": "+1 816-221-9490",
+        "brands": [
+          {
+            "name": "Hilton"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7314003
+          }
+        ],
+        "url": "www.hilton.com/en/hotels/mciprhf-hilton-president-kansas-city/",
+        "categories": [
+          "hotel",
+          "hotel/motel"
+        ],
+        "classifications": [
+          {
+            "code": "HOTEL_MOTEL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "hotel"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "hotel/motel"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1335",
+        "streetName": "Baltimore Avenue",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64105",
+        "extendedPostalCode": "64105-1909",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1335 Baltimore Avenue, Kansas City, MO 64105",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.09753,
+        "lon": -94.58415
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.09843,
+          "lon": -94.58531
+        },
+        "btmRightPoint": {
+          "lat": 39.09663,
+          "lon": -94.58299
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "minor",
+          "position": {
+            "lat": 39.09774,
+            "lon": -94.58415
+          }
+        },
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09753,
+            "lon": -94.58442
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "OZ8QdTKixpc7x0z8QbG-bg",
+      "score": 0.9848617911,
+      "dist": 667.974439,
+      "info": "search:ta:840298000075125-US",
+      "poi": {
+        "name": "Kansas City Marriott Downtown",
+        "phone": "+1 816-421-6800",
+        "brands": [
+          {
+            "name": "Marriott"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7314003
+          }
+        ],
+        "url": "www.marriott.com/MCIDT",
+        "categories": [
+          "hotel",
+          "hotel/motel"
+        ],
+        "classifications": [
+          {
+            "code": "HOTEL_MOTEL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "hotel"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "hotel/motel"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "200",
+        "streetName": "West 12th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64105",
+        "extendedPostalCode": "64105-1637",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "200 West 12th Street, Kansas City, MO 64105",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.100454,
+        "lon": -94.58628
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10135,
+          "lon": -94.58744
+        },
+        "btmRightPoint": {
+          "lat": 39.09955,
+          "lon": -94.58512
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10005,
+            "lon": -94.5863
+          }
+        },
+        {
+          "type": "minor",
+          "position": {
+            "lat": 39.10023,
+            "lon": -94.5863
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "FaXq1366WofrHpgcyw09dw",
+      "score": 0.984239161,
+      "dist": 203.679062,
+      "info": "search:ta:840298000045671-US",
+      "poi": {
+        "name": "Ambassador Hotel Kansas City Autograph Collection",
+        "phone": "+1 816-298-7700",
+        "categorySet": [
+          {
+            "id": 7314003
+          }
+        ],
+        "url": "www.marriott.com/en-us/hotels/mciaa-ambassador-hotel-kansas-city-autograph-collection/overview/?scid=45f93f1b-bd77-45c9-8dab-83b6a417f6fe&y_source=1_MjgxODM0Ny03NjktbG9jYXRpb24ud2Vic2l0ZQ%3D%3D",
+        "categories": [
+          "hotel",
+          "hotel/motel"
+        ],
+        "classifications": [
+          {
+            "code": "HOTEL_MOTEL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "hotel"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "hotel/motel"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1111",
+        "streetName": "Grand Boulevard",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2404",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1111 Grand Boulevard, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.100616,
+        "lon": -94.580644
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10152,
+          "lon": -94.5818
+        },
+        "btmRightPoint": {
+          "lat": 39.09972,
+          "lon": -94.57949
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10063,
+            "lon": -94.58087
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "twGx2Z9uAAqq6Laoyi0kew",
+      "score": 0.9829320908,
+      "dist": 1621.939819,
+      "info": "search:ta:840298000079316-US",
+      "poi": {
+        "name": "Sheraton Kansas City Hotel at Crown Center",
+        "phone": "+1 816-841-1000",
+        "brands": [
+          {
+            "name": "Sheraton"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7314003
+          }
+        ],
+        "url": "www.marriott.com/MCICR",
+        "categories": [
+          "hotel",
+          "hotel/motel"
+        ],
+        "classifications": [
+          {
+            "code": "HOTEL_MOTEL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "hotel"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "hotel/motel"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "2345",
+        "streetName": "McGee Street",
+        "municipality": "Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64108",
+        "extendedPostalCode": "64108-2604",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "2345 McGee Street, Kansas City, MO 64108",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.08514,
+        "lon": -94.57973
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.08604,
+          "lon": -94.58089
+        },
+        "btmRightPoint": {
+          "lat": 39.08424,
+          "lon": -94.57857
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.08516,
+            "lon": -94.58048
+          }
+        },
+        {
+          "type": "minor",
+          "position": {
+            "lat": 39.08517,
+            "lon": -94.58019
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "q4nEOz5KOY5LfOkzHXju_g",
+      "score": 0.9807196856,
+      "dist": 534.231778,
+      "info": "search:ta:840298000053911-US",
+      "poi": {
+        "name": "Hotel Indigo Kansas City Downtown",
+        "phone": "+1 816-283-8000",
+        "brands": [
+          {
+            "name": "Hotel Indigo"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7314003
+          }
+        ],
+        "url": "www.ihg.com/hotelindigo/hotels/us/en/kansas-city/mkcsw/hoteldetail",
+        "categories": [
+          "hotel",
+          "hotel/motel"
+        ],
+        "classifications": [
+          {
+            "code": "HOTEL_MOTEL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "hotel"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "hotel/motel"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "101",
+        "streetName": "West 11th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64105",
+        "extendedPostalCode": "64105-1717",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "101 West 11th Street, Kansas City, MO 64105",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.10076,
+        "lon": -94.584638
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10166,
+          "lon": -94.5858
+        },
+        "btmRightPoint": {
+          "lat": 39.09986,
+          "lon": -94.58348
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10086,
+            "lon": -94.58464
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "wpBhOQ7LVmOkOhWBlg-rzw",
+      "score": 0.9806855917,
+      "dist": 1282.605604,
+      "info": "search:ta:840298000053445-US",
+      "poi": {
+        "name": "Hotel Indigo Kansas City-The Crossroads",
+        "phone": "+1 816-285-1100",
+        "brands": [
+          {
+            "name": "Hotel Indigo"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7314003
+          }
+        ],
+        "url": "www.ihg.com/hotelindigo/hotels/us/en/kansas-city/mkcdg/hoteldetail",
+        "categories": [
+          "hotel",
+          "hotel/motel"
+        ],
+        "classifications": [
+          {
+            "code": "HOTEL_MOTEL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "hotel"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "hotel/motel"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "2020",
+        "streetName": "Grand Boulevard",
+        "municipality": "Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64108",
+        "extendedPostalCode": "64108-1805",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "2020 Grand Boulevard, Kansas City, MO 64108",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.088452,
+        "lon": -94.581896
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.08935,
+          "lon": -94.58305
+        },
+        "btmRightPoint": {
+          "lat": 39.08755,
+          "lon": -94.58074
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.08844,
+            "lon": -94.58148
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "yFSL3doMO3pdn6i4nO6Kyg",
+      "score": 0.9799305201,
+      "dist": 451.748269,
+      "info": "search:ta:840298000077360-US",
+      "poi": {
+        "name": "AC Hotel Kansas City Downtown",
+        "phone": "+1 816-673-3700",
+        "brands": [
+          {
+            "name": "AC Hotel"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7314003
+          }
+        ],
+        "url": "www.marriott.com/MCIAD",
+        "categories": [
+          "hotel",
+          "hotel/motel"
+        ],
+        "classifications": [
+          {
+            "code": "HOTEL_MOTEL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "hotel"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "hotel/motel"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "906",
+        "streetName": "Grand Boulevard",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2000",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "906 Grand Boulevard, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.103275,
+        "lon": -94.581087
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10417,
+          "lon": -94.58225
+        },
+        "btmRightPoint": {
+          "lat": 39.10238,
+          "lon": -94.57993
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10327,
+            "lon": -94.58071
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "0l2rkQplLoUQ6izFSwuTnA",
+      "score": 0.9799305201,
+      "dist": 527.039619,
+      "info": "search:ta:840298000044718-US",
+      "poi": {
+        "name": "Hotel Phillips Curio Collection",
+        "phone": "+1 816-221-7000",
+        "brands": [
+          {
+            "name": "Curio Collection"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7314003
+          }
+        ],
+        "url": "www.hilton.com/en/hotels/mkccuqq-hotel-phillips-kansas-city/",
+        "categories": [
+          "hotel",
+          "hotel/motel"
+        ],
+        "classifications": [
+          {
+            "code": "HOTEL_MOTEL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "hotel"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "hotel/motel"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "106",
+        "streetName": "West 12th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64105",
+        "extendedPostalCode": "64105-1902",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "106 West 12th Street, Kansas City, MO 64105",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.10014,
+        "lon": -94.584681
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10104,
+          "lon": -94.58584
+        },
+        "btmRightPoint": {
+          "lat": 39.09924,
+          "lon": -94.58352
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09998,
+            "lon": -94.58469
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "mckUVZ-kDx4_mRSWQ0ySwg",
+      "score": 0.9799305201,
+      "dist": 527.464114,
+      "info": "search:ta:840298000057911-US",
+      "poi": {
+        "name": "Hyatt Hotel Kansas City",
+        "phone": "+1 816-685-1228",
+        "brands": [
+          {
+            "name": "Hyatt"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7314003
+          }
+        ],
+        "url": "www.hyatt.com/unbound-collection/en-US/mcijd-hotel-kansas-city",
+        "categories": [
+          "hotel",
+          "hotel/motel"
+        ],
+        "classifications": [
+          {
+            "code": "HOTEL_MOTEL",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "hotel"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "hotel/motel"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1228",
+        "streetName": "Baltimore Avenue",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64105",
+        "extendedPostalCode": "64105-1908",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1228 Baltimore Avenue, Kansas City, MO 64105",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.098874,
+        "lon": -94.584619
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.09977,
+          "lon": -94.58578
+        },
+        "btmRightPoint": {
+          "lat": 39.09797,
+          "lon": -94.58346
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09887,
+            "lon": -94.58439
+          }
+        }
+      ]
+    }
+  ]
+}

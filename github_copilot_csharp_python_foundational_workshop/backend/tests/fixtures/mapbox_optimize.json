@@ -1,0 +1,58 @@
+{
+  "code": "Ok",
+  "waypoints": [
+    {
+      "waypoint_index": 0,
+      "trips_index": 0,
+      "distance": 2.1,
+      "name": "Market Street",
+      "location": [-122.4194, 37.7749]
+    },
+    {
+      "waypoint_index": 2,
+      "trips_index": 0,
+      "distance": 3.5,
+      "name": "Castro Street",
+      "location": [-122.0838, 37.3861]
+    },
+    {
+      "waypoint_index": 1,
+      "trips_index": 0,
+      "distance": 1.8,
+      "name": "University Avenue",
+      "location": [-122.1598, 37.4419]
+    }
+  ],
+  "trips": [
+    {
+      "geometry": {
+        "coordinates": [
+          [-122.4194, 37.7749],
+          [-122.1598, 37.4419],
+          [-122.0838, 37.3861]
+        ],
+        "type": "LineString"
+      },
+      "legs": [
+        {
+          "summary": "I-280 S",
+          "weight": 1542.3,
+          "duration": 1398.2,
+          "steps": [],
+          "distance": 25341.5
+        },
+        {
+          "summary": "I-280 S, US-101 S",
+          "weight": 892.1,
+          "duration": 810.3,
+          "steps": [],
+          "distance": 14628.7
+        }
+      ],
+      "weight_name": "routability",
+      "weight": 2434.4,
+      "duration": 2208.5,
+      "distance": 39970.2
+    }
+  ]
+}

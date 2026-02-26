@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "805801248992",
+    "project_id": "road-trip-177bc",
+    "storage_bucket": "road-trip-177bc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:805801248992:android:c2956cae352886511a2885",
+        "android_client_info": {
+          "package_name": "com.hlucianojr.roadtrip"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "805801248992-SOMERANDOMAPPID.apps.googleusercontent.com", //REPLACE_ME_WITH_YOUR_REAL_CLIENT_ID
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "REPLACE_ME_WITH_YOUR_REAL_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "805801248992-SOMERANDOMAPPID.apps.googleusercontent.com", //REPLACE_ME_WITH_YOUR_REAL_CLIENT_ID
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

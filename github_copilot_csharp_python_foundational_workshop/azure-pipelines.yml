@@ -1,0 +1,269 @@
+# Azure DevOps Pipeline for Road Trip Planner
+# Deploys backend API to Azure App Service and frontend to Azure Static Web Apps
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - backend/*
+      - frontend/*
+      - azure-pipelines.yml
+
+variables:
+  - group: roadtrip-prod-vars  # Create this variable group in Azure DevOps Library
+  # Variables needed in group:
+  # - RESOURCE_GROUP
+  # - APP_NAME
+  # - STATICWEB_NAME
+  # - MAPBOX_TOKEN
+  # - GOOGLE_CLIENT_ID
+  # - AZURE_SUBSCRIPTION (service connection name)
+
+stages:
+  # ============================================================================
+  # BUILD AND TEST STAGE
+  # ============================================================================
+  - stage: Build
+    displayName: 'Build and Test'
+    jobs:
+      # Backend build and test
+      - job: BuildBackend
+        displayName: 'Build and Test Backend'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.12'
+            displayName: 'Use Python 3.12'
+
+          - script: |
+              cd backend
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            displayName: 'Install backend dependencies'
+
+          - script: |
+              cd backend
+              python -m pytest tests/ -v --tb=short
+            displayName: 'Run backend tests'
+            continueOnError: true  # Don't fail build if tests fail (adjust as needed)
+
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: '$(Build.SourcesDirectory)/backend'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/backend-$(Build.BuildId).zip'
+              replaceExistingArchive: true
+            displayName: 'Archive backend files'
+
+          - publish: '$(Build.ArtifactStagingDirectory)/backend-$(Build.BuildId).zip'
+            artifact: backend
+            displayName: 'Publish backend artifact'
+
+      # Frontend build and test
+      - job: BuildFrontend
+        displayName: 'Build and Test Frontend'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '18.x'
+            displayName: 'Use Node.js 18.x'
+
+          - script: |
+              cd frontend
+              npm install
+            displayName: 'Install frontend dependencies'
+
+          - script: |
+              cd frontend
+              npm run lint
+            displayName: 'Run ESLint'
+            continueOnError: true
+
+          - script: |
+              cd frontend
+              export VITE_API_URL=https://$(APP_NAME).azurewebsites.net
+              export VITE_GOOGLE_CLIENT_ID=$(GOOGLE_CLIENT_ID)
+              export VITE_MAPBOX_TOKEN=$(MAPBOX_TOKEN)
+              npm run build
+            displayName: 'Build frontend'
+
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: '$(Build.SourcesDirectory)/frontend/dist'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/frontend-$(Build.BuildId).zip'
+              replaceExistingArchive: true
+            displayName: 'Archive frontend build'
+
+          - publish: '$(Build.ArtifactStagingDirectory)/frontend-$(Build.BuildId).zip'
+            artifact: frontend
+            displayName: 'Publish frontend artifact'
+
+  # ============================================================================
+  # DATABASE MIGRATION STAGE
+  # ============================================================================
+  - stage: MigrateDatabase
+    displayName: 'Run Database Migrations'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: RunMigrations
+        displayName: 'Execute Alembic Migrations'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.12'
+            displayName: 'Use Python 3.12'
+
+          - download: current
+            artifact: backend
+            displayName: 'Download backend artifact'
+
+          - task: ExtractFiles@1
+            inputs:
+              archiveFilePatterns: '$(Pipeline.Workspace)/backend/*.zip'
+              destinationFolder: '$(Pipeline.Workspace)/backend-extracted'
+            displayName: 'Extract backend files'
+
+          - script: |
+              pip install -r $(Pipeline.Workspace)/backend-extracted/requirements.txt
+            displayName: 'Install dependencies for migrations'
+
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: '$(AZURE_SUBSCRIPTION)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Get database connection string from Key Vault
+                DB_URL=$(az keyvault secret show --vault-name $(KEY_VAULT_NAME) --name DatabaseUrl --query value -o tsv)
+                export DATABASE_URL="$DB_URL"
+                
+                # Run migrations
+                cd $(Pipeline.Workspace)/backend-extracted
+                python -m alembic upgrade head
+            displayName: 'Run Alembic migrations'
+
+  # ============================================================================
+  # DEPLOY BACKEND STAGE
+  # ============================================================================
+  - stage: DeployBackend
+    displayName: 'Deploy Backend to App Service'
+    dependsOn: MigrateDatabase
+    condition: succeeded()
+    jobs:
+      - deployment: DeployAPI
+        displayName: 'Deploy API to Azure App Service'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: 'production'  # Create environment in Azure DevOps
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: backend
+                  displayName: 'Download backend artifact'
+
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: '$(AZURE_SUBSCRIPTION)'
+                    appType: 'webAppLinux'
+                    appName: '$(APP_NAME)'
+                    package: '$(Pipeline.Workspace)/backend/*.zip'
+                    runtimeStack: 'PYTHON|3.12'
+                    startUpCommand: 'startup.sh'
+                  displayName: 'Deploy to Azure App Service'
+
+                - task: AzureAppServiceSettings@1
+                  inputs:
+                    azureSubscription: '$(AZURE_SUBSCRIPTION)'
+                    appName: '$(APP_NAME)'
+                    resourceGroupName: '$(RESOURCE_GROUP)'
+                    appSettings: |
+                      [
+                        {
+                          "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+                          "value": "true",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "ALLOWED_ORIGINS",
+                          "value": "https://$(STATICWEB_NAME).azurestaticapps.net,http://localhost:5173",
+                          "slotSetting": false
+                        }
+                      ]
+                  displayName: 'Configure app settings'
+
+  # ============================================================================
+  # DEPLOY FRONTEND STAGE
+  # ============================================================================
+  - stage: DeployFrontend
+    displayName: 'Deploy Frontend to Static Web App'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeployStaticWebApp
+        displayName: 'Deploy to Azure Static Web Apps'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: frontend
+                  displayName: 'Download frontend artifact'
+
+                - task: ExtractFiles@1
+                  inputs:
+                    archiveFilePatterns: '$(Pipeline.Workspace)/frontend/*.zip'
+                    destinationFolder: '$(Pipeline.Workspace)/frontend-dist'
+                  displayName: 'Extract frontend build'
+
+                - task: AzureStaticWebApp@0
+                  inputs:
+                    azure_static_web_apps_api_token: '$(STATICWEB_DEPLOYMENT_TOKEN)'  # Add to variable group
+                    app_location: '$(Pipeline.Workspace)/frontend-dist'
+                    skip_app_build: true
+                  displayName: 'Deploy to Static Web App'
+
+  # ============================================================================
+  # POST-DEPLOYMENT VALIDATION
+  # ============================================================================
+  - stage: Validate
+    displayName: 'Validate Deployment'
+    dependsOn:
+      - DeployBackend
+      - DeployFrontend
+    condition: succeeded()
+    jobs:
+      - job: HealthCheck
+        displayName: 'Run Health Checks'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              echo "Testing backend health endpoint..."
+              curl -f https://$(APP_NAME).azurewebsites.net/health || exit 1
+              
+              echo "Testing backend API health endpoint..."
+              curl -f https://$(APP_NAME).azurewebsites.net/api/health || exit 1
+              
+              echo "Testing frontend..."
+              curl -f https://$(STATICWEB_NAME).azurestaticapps.net || exit 1
+              
+              echo "All health checks passed!"
+            displayName: 'Health check endpoints'

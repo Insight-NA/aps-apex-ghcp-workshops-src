@@ -1,0 +1,789 @@
+{
+  "summary": {
+    "query": "restaurant",
+    "queryType": "NON_NEAR",
+    "queryTime": 269,
+    "numResults": 10,
+    "offset": 0,
+    "totalResults": 100,
+    "fuzzyLevel": 1,
+    "geoBias": {
+      "lat": 39.0997,
+      "lon": -94.5786
+    },
+    "queryIntent": []
+  },
+  "results": [
+    {
+      "type": "POI",
+      "id": "rAtAWYlSBAf9XVnJJ2jPpQ",
+      "score": 0.9916827679,
+      "dist": 376.67298,
+      "info": "search:ta:840296000185683-US",
+      "poi": {
+        "name": "KFC",
+        "phone": "+1 816-842-0680",
+        "brands": [
+          {
+            "name": "KFC"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7315015
+          }
+        ],
+        "url": "www.kfc.com",
+        "categories": [
+          "fast food",
+          "restaurant"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "fast food"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1111",
+        "streetName": "Main Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1111 Main Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.10102,
+        "lon": -94.58262
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10192,
+          "lon": -94.58378
+        },
+        "btmRightPoint": {
+          "lat": 39.10012,
+          "lon": -94.58146
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10104,
+            "lon": -94.5831
+          }
+        },
+        {
+          "type": "minor",
+          "position": {
+            "lat": 39.10113,
+            "lon": -94.58309
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "ScK_Dw496kZ6ZarKY_k_tQ",
+      "score": 0.990619421,
+      "dist": 4.111502,
+      "info": "search:ta:840296000185501-US",
+      "poi": {
+        "name": "Teriyaki Madness City",
+        "brands": [
+          {
+            "name": "Teriyaki Madness"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7315015
+          }
+        ],
+        "url": "teriyakimadness.com/",
+        "categories": [
+          "fast food",
+          "restaurant"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "fast food"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetName": "Oak Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "Oak Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.099726,
+        "lon": -94.578567
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10063,
+          "lon": -94.57973
+        },
+        "btmRightPoint": {
+          "lat": 39.09883,
+          "lon": -94.57741
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09973,
+            "lon": -94.57856
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "46wao89Jb_qsrkLLQnViJw",
+      "score": 0.989830792,
+      "dist": 131.04188,
+      "info": "search:ta:840297000053199-US",
+      "poi": {
+        "name": "Subway 11Th & Oak Parking Garage",
+        "phone": "+1 816-421-6574",
+        "brands": [
+          {
+            "name": "Subway"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7315042
+          }
+        ],
+        "url": "www.subway.com/",
+        "categories": [
+          "restaurant",
+          "sandwich"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "sandwich"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "327",
+        "streetName": "East 11th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2410",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "327 East 11th Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.100851,
+        "lon": -94.578926
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10175,
+          "lon": -94.58008
+        },
+        "btmRightPoint": {
+          "lat": 39.09995,
+          "lon": -94.57777
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10098,
+            "lon": -94.57891
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "QNlc4Qr-ObPD9D8qbCockw",
+      "score": 0.9881497622,
+      "dist": 137.329382,
+      "info": "search:ta:840296000268009-US",
+      "poi": {
+        "name": "Rbc Wedding & Event Planner",
+        "phone": "+1 816-814-0022",
+        "categorySet": [
+          {
+            "id": 7315146
+          }
+        ],
+        "url": "rbcplanner.com/",
+        "categories": [
+          "banquet rooms",
+          "restaurant"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "banquet rooms"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1125",
+        "streetName": "Grand Boulevard",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2404",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1125 Grand Boulevard, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.10009,
+        "lon": -94.58011
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10099,
+          "lon": -94.58127
+        },
+        "btmRightPoint": {
+          "lat": 39.09919,
+          "lon": -94.57895
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10059,
+            "lon": -94.58087
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "NoIFP7h3S-L-21L0vBt8qw",
+      "score": 0.9875317812,
+      "dist": 97.003674,
+      "info": "search:ta:840296000272598-US",
+      "poi": {
+        "name": "Foodlove Cafe",
+        "categorySet": [
+          {
+            "id": 7315
+          }
+        ],
+        "url": "foodlovecafe.com/",
+        "categories": [
+          "restaurant"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "414",
+        "streetName": "East 12th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2700",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "414 East 12th Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.10037,
+        "lon": -94.57788
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10127,
+          "lon": -94.57904
+        },
+        "btmRightPoint": {
+          "lat": 39.09947,
+          "lon": -94.57672
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09976,
+            "lon": -94.57793
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "v68Sbs0upV4EQJetUe5kbQ",
+      "score": 0.9872556329,
+      "dist": 153.621583,
+      "info": "search:ta:840296000184852-US",
+      "poi": {
+        "name": "Silver Spoon Cafe",
+        "phone": "+1 816-421-4004",
+        "categorySet": [
+          {
+            "id": 7315
+          }
+        ],
+        "url": "www.thesilverspooncafe.com",
+        "categories": [
+          "restaurant"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1125",
+        "streetName": "Grand Boulevard",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2404",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1125 Grand Boulevard, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.10011,
+        "lon": -94.5803
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10101,
+          "lon": -94.58146
+        },
+        "btmRightPoint": {
+          "lat": 39.09921,
+          "lon": -94.57914
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10059,
+            "lon": -94.58087
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "hFcW2zurYF4XDk7jx_S7fw",
+      "score": 0.9856405854,
+      "dist": 208.778923,
+      "info": "search:ta:840297000038419-US",
+      "poi": {
+        "name": "Curry In A Hurry",
+        "phone": "+1 816-886-9029",
+        "categorySet": [
+          {
+            "id": 7315015
+          }
+        ],
+        "url": "www.curryinahurrykc.com/",
+        "categories": [
+          "fast food",
+          "restaurant"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "fast food"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1103",
+        "streetName": "Grand Boulevard",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2404",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1103 Grand Boulevard, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.10079,
+        "lon": -94.58057
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10169,
+          "lon": -94.58173
+        },
+        "btmRightPoint": {
+          "lat": 39.09989,
+          "lon": -94.57941
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.1008,
+            "lon": -94.58086
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "6qJTPvP9YAoCpvILf7sg5Q",
+      "score": 0.9848281741,
+      "dist": 223.211517,
+      "info": "search:ta:840298000051453-US",
+      "poi": {
+        "name": "Jimmy John's",
+        "phone": "+1 816-221-0991",
+        "brands": [
+          {
+            "name": "Jimmy John's"
+          }
+        ],
+        "categorySet": [
+          {
+            "id": 7315015
+          }
+        ],
+        "url": "locations.jimmyjohns.com/mo/kansascity/sandwiches-643.html?utm_source=google%20my%20business&utm_medium=organic&utm_campaign=website%20link",
+        "categories": [
+          "fast food",
+          "restaurant"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "fast food"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1103",
+        "streetName": "Grand Boulevard",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1103 Grand Boulevard, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.100938,
+        "lon": -94.580636
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10184,
+          "lon": -94.58179
+        },
+        "btmRightPoint": {
+          "lat": 39.10004,
+          "lon": -94.57948
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10095,
+            "lon": -94.58085
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "02WtlkB8RG9g8cxfMXJWAw",
+      "score": 0.9847431779,
+      "dist": 237.193206,
+      "info": "search:ta:840299002966431-US",
+      "poi": {
+        "name": "KC Daiquiri Shop",
+        "phone": "+1 816-974-3275",
+        "categorySet": [
+          {
+            "id": 7315063
+          }
+        ],
+        "url": "kcdaiquirishop.com/",
+        "categories": [
+          "creole-cajun",
+          "restaurant"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "creole-cajun"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "1116",
+        "streetName": "Grand Boulevard",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2300",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "1116 Grand Boulevard, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.100447,
+        "lon": -94.581175
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10135,
+          "lon": -94.58233
+        },
+        "btmRightPoint": {
+          "lat": 39.09955,
+          "lon": -94.58002
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.10044,
+            "lon": -94.58088
+          }
+        }
+      ]
+    },
+    {
+      "type": "POI",
+      "id": "nYbYcGa0CsT8YI9mwVpTUQ",
+      "score": 0.9844782352,
+      "dist": 312.72148,
+      "info": "search:ta:840299003047274-US",
+      "poi": {
+        "name": "Pickleman's Gourmet Cafe",
+        "phone": "+1 816-321-2005",
+        "categorySet": [
+          {
+            "id": 7315042
+          }
+        ],
+        "url": "www.picklemans.com/locations/kansas-city-downtown.php?utm_source=ExtNet&utm_medium=Yext",
+        "categories": [
+          "restaurant",
+          "sandwich"
+        ],
+        "classifications": [
+          {
+            "code": "RESTAURANT",
+            "names": [
+              {
+                "nameLocale": "en-US",
+                "name": "sandwich"
+              },
+              {
+                "nameLocale": "en-US",
+                "name": "restaurant"
+              }
+            ]
+          }
+        ]
+      },
+      "address": {
+        "streetNumber": "25",
+        "streetName": "East 12th Street",
+        "municipality": "Kansas City",
+        "neighbourhood": "Downtown Kansas City",
+        "countrySecondarySubdivision": "Jackson",
+        "countrySubdivision": "MO",
+        "countrySubdivisionName": "Missouri",
+        "countrySubdivisionCode": "MO",
+        "postalCode": "64106",
+        "extendedPostalCode": "64106-2102",
+        "countryCode": "US",
+        "country": "United States",
+        "countryCodeISO3": "USA",
+        "freeformAddress": "25 East 12th Street, Kansas City, MO 64106",
+        "localName": "Kansas City"
+      },
+      "position": {
+        "lat": 39.09983,
+        "lon": -94.58222
+      },
+      "viewport": {
+        "topLeftPoint": {
+          "lat": 39.10073,
+          "lon": -94.58338
+        },
+        "btmRightPoint": {
+          "lat": 39.09893,
+          "lon": -94.58106
+        }
+      },
+      "entryPoints": [
+        {
+          "type": "main",
+          "position": {
+            "lat": 39.09994,
+            "lon": -94.58222
+          }
+        }
+      ]
+    }
+  ]
+}

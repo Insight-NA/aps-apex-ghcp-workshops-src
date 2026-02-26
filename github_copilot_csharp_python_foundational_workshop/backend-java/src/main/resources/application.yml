@@ -1,0 +1,29 @@
+server:
+  port: ${PORT:8082}
+
+spring:
+  application:
+    name: geospatial-service
+
+# External API keys (injected via environment variables)
+geospatial:
+  mapbox:
+    token: ${MAPBOX_TOKEN:}
+    base-url: https://api.mapbox.com
+  azure-maps:
+    key: ${AZURE_MAPS_KEY:}
+    base-url: https://atlas.microsoft.com
+
+# Actuator health endpoint
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.roadtrip: INFO

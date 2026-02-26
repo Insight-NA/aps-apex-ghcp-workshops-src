@@ -1,0 +1,38 @@
+{
+  "type": "FeatureCollection",
+  "query": ["san", "francisco"],
+  "features": [
+    {
+      "id": "place.10715206333974860",
+      "type": "Feature",
+      "place_type": ["place"],
+      "relevance": 1,
+      "properties": {
+        "wikidata": "Q62"
+      },
+      "text": "San Francisco",
+      "place_name": "San Francisco, California, United States",
+      "bbox": [-122.51426, 37.70822, -122.35747, 37.83281],
+      "center": [-122.4194, 37.7749],
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-122.4194, 37.7749]
+      },
+      "context": [
+        {
+          "id": "region.11319063928738010",
+          "short_code": "US-CA",
+          "wikidata": "Q99",
+          "text": "California"
+        },
+        {
+          "id": "country.19678805456372290",
+          "short_code": "us",
+          "wikidata": "Q30",
+          "text": "United States"
+        }
+      ]
+    }
+  ],
+  "attribution": "NOTICE: © 2025 Mapbox and its suppliers. All rights reserved."
+}
