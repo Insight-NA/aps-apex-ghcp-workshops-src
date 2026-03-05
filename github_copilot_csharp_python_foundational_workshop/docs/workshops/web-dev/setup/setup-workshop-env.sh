@@ -515,14 +515,16 @@ cat > "$PROJECT_ROOT/docs/workshops/web-dev/setup/demo-templates/demo-04-proxy.e
 # Demo 4: API Proxy Security Pattern
 # Instructions: Show how backend hides API keys from frontend
 
+#Have AI generate sample tokens for demonstration purposes only. DO NOT USE REAL TOKENS.
+
 # ❌ WRONG: Frontend .env (exposes secret to client)
-VITE_MAPBOX_SECRET_TOKEN=sk.secret_key_exposed_in_browser
+VITE_MAPBOX_SECRET_TOKEN=
 
 # ✅ CORRECT: Backend .env (server-side only)
-MAPBOX_TOKEN=sk.secret_key_safe_on_server
+MAPBOX_TOKEN=
 
 # ✅ CORRECT: Frontend .env (public token only)
-VITE_MAPBOX_TOKEN=pk.public_token_safe_in_browser
+VITE_MAPBOX_TOKEN=
 EOF
 
 print_success "Created demo template files in setup/demo-templates/"

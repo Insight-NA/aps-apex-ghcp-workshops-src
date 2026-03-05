@@ -1,0 +1,1519 @@
+# GitHub Copilot: Key Definitions & Best Practices for Web Development
+
+**Last Updated**: March 5, 2026  
+**Workshop Series**: Road Trip Planner - GitHub Copilot for Web Developers  
+**Reference Guide**: Read before attending workshops
+
+---
+
+## Table of Contents
+
+1. [Key Definitions](#key-definitions)
+   - [GitHub Copilot](#what-is-github-copilot)
+   - [MCP Servers](#what-is-an-mcp-server)
+   - [Custom Agents](#what-are-custom-agents)
+   - [Prompt Files](#what-are-prompt-files)
+   - [Instruction Files](#what-and-why-is-an-instruction-file)
+   - [Copilot Interaction Modes](#copilot-interaction-modes) *(NEW)*
+   - [Path-Specific Instructions](#path-specific-custom-instructions) *(NEW)*
+   - [Copilot Spaces](#copilot-spaces-preview) *(NEW)*
+   - [Model Selection](#model-selection) *(NEW)*
+2. [Prompting Techniques](#prompting-techniques)
+3. [Best Practices for AI-Assisted Web Development](#best-practices-for-ai-assisted-web-development)
+4. [Common Pitfalls & How to Avoid Them](#common-pitfalls--how-to-avoid-them)
+5. [Quick Reference](#quick-reference)
+6. [References & Further Reading](#references--further-reading) *(NEW)*
+
+---
+
+## Key Definitions
+
+### What is GitHub Copilot?
+
+**GitHub Copilot** is an AI-powered coding assistant developed by GitHub and OpenAI that provides real-time code suggestions, completions, and explanations directly in your code editor.
+
+**Core Capabilities**:
+- **Inline Code Suggestions**: Autocomplete entire functions, classes, or code blocks as you type
+- **Chat Interface**: Ask questions, debug code, explain functions, refactor logic
+- **Multi-language Support**: Works with JavaScript/TypeScript, Python, Go, Java, C#, and 30+ languages
+- **Context-Aware**: Analyzes your entire codebase, open files, and recent changes to provide relevant suggestions
+
+**How It Works**:
+1. Copilot analyzes your code context (current file, related files, comments)
+2. Sends context to a selected AI model (GPT-4o, Claude, o1, and others — users can choose in VS Code via the model picker)
+3. Returns suggestions based on patterns learned from billions of lines of public code
+4. You accept, reject, or modify suggestions
+
+> **Note**: Copilot previously used OpenAI's Codex model. As of 2025–2026, Copilot supports **multiple AI models** including GPT-4o, Claude Sonnet, and o1-preview. You can select your preferred model in VS Code via the model picker dropdown in Copilot Chat. Custom agents can also specify a model (e.g., `model: Claude Sonnet 4` in agent YAML frontmatter).
+
+**Example**:
+```typescript
+// You type this comment:
+// Create a function that calculates total trip distance in miles
+
+// Copilot suggests this code:
+function calculateTripDistance(stops: Stop[]): number {
+  let totalDistance = 0;
+  for (let i = 0; i < stops.length - 1; i++) {
+    totalDistance += getDistanceBetweenPoints(
+      stops[i].coordinates,
+      stops[i + 1].coordinates
+    );
+  }
+  return totalDistance;
+}
+```
+
+---
+
+### What is an MCP Server?
+
+**MCP (Model Context Protocol) Server** is a standardized protocol for AI tools to access external data sources, APIs, and services to enhance their contextual understanding.
+
+**Purpose**: Extends GitHub Copilot's knowledge beyond its training data by connecting to:
+- **Documentation sources** (Microsoft Docs, library APIs, Stack Overflow)
+- **Cloud services** (Azure resource introspection, AWS infrastructure)
+- **Internal tools** (Company wikis, design systems, style guides)
+
+**Real-World Example from Road Trip Planner**:
+
+**Without MCP**:
+```typescript
+// Copilot suggests outdated Mapbox Directions API v4 (deprecated 2020)
+const response = await axiosInstance.get('/api/directions/v4/...');
+```
+
+**With `@context7` MCP Server**:
+```typescript
+// Instructor: @context7 Fetch latest Mapbox Directions API documentation
+
+// Copilot suggests current Mapbox Directions API v5 routed through BFF
+const response = await axiosInstance.post('/api/directions', {
+  coordinates,
+  profile: 'driving-traffic'
+});
+// BFF (port 3000) proxies to Java backend (port 8082) → Mapbox API v5
+);
+```
+
+**MCP Servers Used in Road Trip Planner**:
+- `@context7`: Fetches up-to-date library documentation (Mapbox, React, FastAPI) — configured as an **inline MCP server** in [context7.agent.md](.github/copilot-agents/context7.agent.md) with HTTP transport and secret injection
+- `mcp_com_microsoft_*`: Azure resource introspection, best practices, Bicep schemas
+- **GitHub MCP Server** (remote): Zero-setup access to GitHub APIs — create issues, search code, manage PRs directly from Copilot Chat. Available remotely in VS Code with no local setup required.
+- **Playwright MCP**: Browser automation for E2E testing via the `@playwright-tester` agent
+- Custom MCP: Internal style guide enforcement, API contract validation
+
+**MCP Configuration Approaches**:
+1. **Inline in Agent Files** (recommended for project-specific servers):
+   ```yaml
+   # Inside .agent.md YAML frontmatter
+   mcp-servers:
+     context7:
+       type: http
+       url: "https://mcp.context7.com/mcp"
+       headers:
+         x-api-key: "${{ secrets.COPILOT_MCP_CONTEXT7 }}"
+       tools: ["resolve-library-id", "get-library-docs"]
+   ```
+2. **VS Code User Settings** (for personal/global servers):
+   ```json
+   "github.copilot.chat.mcp.servers": {
+     "context7": { "args": ["-y", "@upstage/context7-mcp"] }
+   }
+   ```
+3. **GitHub MCP Registry** ([github.com/mcp](https://github.com/mcp)): Curated list of community and partner MCP servers (currently in public preview).
+
+**MCP Security**:
+- Push protection blocks secrets from being included in AI-generated responses when interacting via the GitHub MCP server
+- Enterprise/org admins can enable or disable MCP via the "MCP servers in Copilot" policy
+- Use `${{ secrets.SECRET_NAME }}` for API keys — never hardcode in agent files
+
+**When to Use MCP**:
+- ✅ Need latest API documentation (libraries change frequently)
+- ✅ Company-specific patterns (internal design systems)
+- ✅ Cloud resource queries (list Azure subscriptions, resource groups)
+- ❌ Basic language syntax (Copilot already knows JavaScript/Python)
+- ❌ Public libraries with stable APIs (React fundamentals)
+
+---
+
+### What are Custom Agents?
+
+**Custom Agents** are specialized AI assistants configured for specific tasks, created using `.agent.md` files with instructions, tools, and workflows.
+
+**Structure of a Custom Agent** (uses `chatagent` YAML frontmatter):
+```markdown
+---chatagent
+name: coordinate-validator
+description: Validates GeoJSON coordinate format in code suggestions
+tools:
+  - read_file
+  - grep_search
+  - run_in_terminal
+mcp-servers:
+  - context7       # Optional: connect to MCP servers
+handoffs:
+  - tdd-red        # Optional: delegate to other agents
+model: Claude Sonnet 4  # Optional: override the default model
+---
+
+# Coordinate Validator Agent
+
+Your agent's detailed instructions go here as standard markdown.
+- Check all coordinate arrays use [longitude, latitude] order
+- Flag [lat, lng] as incorrect (common bug with Google Maps patterns)
+- Reference Mapbox GL JS documentation for correct format
+
+## Rules
+- NEVER suggest [lat, lng] format
+- ALWAYS use [lng, lat] (GeoJSON spec)
+```
+
+> **Note**: The `chatagent` frontmatter is what distinguishes agent files from regular markdown. Fields like `tools`, `mcp-servers`, `handoffs`, and `model` are all optional. The body after `---` contains the agent's instructions in plain markdown.
+
+**Road Trip Planner Custom Agents** (17 total in `.github/copilot-agents/`):
+
+**Testing & Quality (5 agents)**:
+- `@tdd-red`: Write failing tests first (TDD Red phase)
+- `@tdd-green`: Implement minimal code to pass tests (TDD Green phase)
+- `@tdd-refactor`: Clean up code after tests pass (TDD Refactor phase)
+- `@accessibility`: WCAG AA compliance audits
+- `@playwright-tester`: E2E test generation with Playwright (uses `model: Claude Sonnet 4` and Playwright MCP)
+
+**Planning & Research (4 agents)**:
+- `@task-researcher`: Deep research with web access
+- `@task-planner`: Create actionable implementation plans
+- `@debug`: Systematic bug investigation
+- `@context7`: Library documentation expert (inline MCP server integration)
+
+**Code Quality (3 agents)**:
+- `@tech-debt-remediation-plan`: Analyze technical debt (read-only)
+- `@janitor`: Code cleanup (remove unused imports, standardize errors)
+- `@code-reviewer`: Automated code review against project standards
+
+**Infrastructure & Documentation (5 agents)**:
+- `@terraform-azure-planning`: Azure IaC planning
+- `@api-docs-generator`: Enhance FastAPI/ASP.NET/Spring Boot Swagger docs
+- `@pre-commit-enforcer`: Configure Husky/lint-staged
+- `@docker-compose-validator`: Validate multi-service Docker Compose configs
+- `@semantic-versioning`: Automated version bumps following SemVer rules
+
+**Example Workflow** (Fixing TypeScript `any` violations):
+```bash
+# Step 1: Research
+@task-researcher "Research TypeScript strict mode best practices"
+
+# Step 2: Analyze technical debt
+@tech-debt-remediation-plan "Find all instances of 'any' type in src/"
+
+# Step 3: Write tests first
+@tdd-red "Write tests for FloatingPanel props interface"
+
+# Step 4: Implement fix
+@tdd-green "Replace 'any' with proper TypeScript interface"
+
+# Step 5: Clean up
+@tdd-refactor "Consolidate duplicate type definitions"
+```
+
+**Creating Your Own Agent** (save as `.github/copilot-agents/coordinate-validator.agent.md`):
+```markdown
+---chatagent
+name: coordinate-validator
+description: Validates GeoJSON coordinate format in code suggestions
+tools:
+  - read_file
+  - grep_search
+---
+
+# Coordinate Validator Agent
+
+Validates GeoJSON coordinate format in all code suggestions.
+
+## Instructions
+- Check all coordinate arrays use [longitude, latitude] order
+- Flag [lat, lng] as incorrect (common bug with Google Maps patterns)
+- Reference Mapbox GL JS documentation for correct format
+- Suggest fixes for coordinate order errors
+
+## Rules
+- NEVER suggest [lat, lng] format
+- ALWAYS use [lng, lat] (GeoJSON spec)
+- Example: San Francisco = [-122.4194, 37.7749]
+```
+
+Usage: `@coordinate-validator "Check if these map markers use correct format"`
+
+---
+
+### What are Prompt Files?
+
+**Prompt Files** (`.prompt.md`) are reusable, team-wide templates for common tasks that ensure consistency across developers.
+
+**Purpose**: 
+- Standardize how team members ask Copilot for help
+- Encode best practices into prompts
+- Share domain knowledge (API patterns, architecture rules)
+
+**Road Trip Planner Prompt Files** (14 total in `.github/prompts/`):
+- `version-update.prompt.md`: Semantic versioning workflow (373 lines, comprehensive)
+- `plan-azureIacRoadmapUpdate.prompt.md`: Azure infrastructure planning
+- `speckit-*.prompt.md`: SpecKit prompts (feature specs, planning, task generation) — 3-line delegation stubs using `agent:` frontmatter
+- `docker-health-check.prompt.md`: Docker Compose service health validation
+- `api-contract-check.prompt.md`: Verify BFF ↔ backend API contract consistency
+- Additional prompts: Pipeline validation, migration helpers, testing workflows
+
+**Example**: `version-update.prompt.md`
+```markdown
+# Semantic Version Update Prompt
+
+Update version numbers following semantic versioning (MAJOR.MINOR.PATCH).
+
+## Steps
+1. Check ROADMAP.md for completed issues in current milestone
+2. Determine version increment:
+   - MAJOR: Breaking API changes (0.x → 1.0, 1.x → 2.0)
+   - MINOR: New features, backward-compatible (1.0 → 1.1)
+   - PATCH: Bug fixes only (1.0.0 → 1.0.1)
+3. Update package.json, backend/__init__.py, CHANGELOG.md
+4. Create git tag: `git tag v1.2.0`
+
+## Example
+Current: 1.1.5
+Completed: Issue #14 (AI trip generation feature)
+New version: 1.2.0 (MINOR - new feature added)
+```
+
+**Using Prompt Files**:
+```bash
+# VS Code Command Palette (Cmd+Shift+P)
+> GitHub Copilot: Use Prompt File
+
+# Select: version-update.prompt.md
+# Copilot executes the workflow automatically
+```
+
+**Benefits**:
+- ✅ **Consistency**: All team members follow same process
+- ✅ **Onboarding**: New developers learn patterns faster
+- ✅ **Quality**: Encodes best practices (e.g., semantic versioning rules)
+- ✅ **Efficiency**: No need to re-explain complex workflows
+
+---
+
+### What and Why is an Instruction File?
+
+**Instruction File** (`.github/copilot-instructions.md`) is a project-specific rulebook that guides ALL Copilot suggestions for your codebase.
+
+**Purpose**:
+- Enforce architectural patterns (BFF, API proxy, state management)
+- Prevent technology substitutions (e.g., Redux → Zustand)
+- Define coding standards (TypeScript strict mode, no `any` types)
+- Document project-specific conventions (coordinate format, file organization)
+
+**Road Trip Planner Instruction File** (471 lines):
+
+**Architecture Adherence (CRITICAL)**:
+```markdown
+## Architecture Adherence
+DO NOT override or replace existing technology choices:
+
+### Frontend
+- Frontend Framework: React 18+ with TypeScript (NOT Vue, Angular)
+- State Management: Zustand ONLY (NOT Redux, MobX, Context API)
+- Map Library: React Map GL ONLY (NOT Leaflet, Google Maps)
+- HTTP Client: Axios via axiosInstance (with auth interceptors) — do NOT use raw fetch
+
+### Backend Services (Polyglot Microservices)
+| Service | Framework | Port | Responsibilities |
+|---------|-----------|------|------------------|
+| BFF | Node.js + Express | 3000 | API gateway, auth relay, request routing |
+| Python | FastAPI | 8000 | Trips CRUD, auth, vehicle-specs fallback |
+| C# | ASP.NET Web API (.NET 8) | 8081 | AI vehicle parsing, trip generation (Azure OpenAI) |
+| Java | Spring Boot 3 | 8082 | Geocoding, directions, POI search, route optimization |
+
+### Data Flow
+Frontend → BFF (port 3000) → Python/C#/Java backends → External APIs (Mapbox, Azure OpenAI)
+Frontend NEVER calls backend services directly — ALL requests go through BFF
+
+### AI Provider
+- AI Provider: Azure OpenAI (in C# backend, NOT Google Gemini)
+- Database: PostgreSQL 15 (primary), SQLite (non-Docker fallback)
+- Database ORM: SQLAlchemy ONLY (NOT Django ORM, raw SQL)
+```
+
+**Coding Standards**:
+```markdown
+## TypeScript Standards
+- No `any` types allowed - all props/state must have interfaces
+- Component props: Define `interface ComponentProps` above component
+- API responses: Use typed interfaces in `src/types/`
+
+## Python Standards
+- Pydantic models for all API schemas
+- Business logic in `backend/*_service.py`, NOT in `main.py`
+- Use `HTTPException` with clear status codes
+```
+
+**Project-Specific Conventions**:
+```markdown
+## Coordinate Format Convention
+Always use GeoJSON format: [longitude, latitude]
+
+✅ CORRECT:
+const coords: [number, number] = [-122.4194, 37.7749];
+
+❌ WRONG (Lat/Lng reversed):
+const coords = [37.7749, -122.4194];
+```
+
+**Why Instruction Files Matter**:
+
+**Without Instruction File**:
+```typescript
+// Developer: "Create a state store for trip data"
+
+// Copilot suggests Redux (wrong for this project):
+import { createStore } from 'redux';
+
+const tripReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'ADD_STOP':
+      return { ...state, stops: [...state.stops, action.payload] };
+    default:
+      return state;
+  }
+};
+```
+
+**With Instruction File**:
+```typescript
+// Developer: "Create a state store for trip data"
+
+// Copilot suggests Zustand (correct per instructions):
+import { create } from 'zustand';
+
+interface TripStore {
+  stops: Stop[];
+  addStop: (stop: Stop) => void;
+}
+
+export const useTripStore = create<TripStore>((set) => ({
+  stops: [],
+  addStop: (stop) => set((state) => ({ stops: [...state.stops, stop] }))
+}));
+```
+
+**Best Practices for Instruction Files**:
+1. **Be Explicit**: "Use Zustand ONLY (NOT Redux)" vs "Prefer Zustand"
+2. **Show Examples**: Include ✅ CORRECT and ❌ WRONG code snippets
+3. **Explain Why**: "All external APIs must go through backend to hide API keys"
+4. **Update Frequently**: Add rules as patterns emerge (e.g., coordinate format bugs)
+5. **Keep Organized**: Use headers, table of contents, clear sections
+
+---
+
+### Copilot Interaction Modes
+
+GitHub Copilot now supports multiple interaction modes beyond inline completions:
+
+#### Inline Completions (Default)
+The original ghost-text suggestions that appear as you type. Best for completing the current line or a small block.
+
+#### Chat Panel (Ask Mode)
+Open the Copilot Chat sidebar (`Ctrl+Shift+I` / `Cmd+Shift+I`) to ask questions, explain code, or get suggestions without modifying files directly. Responses include code blocks you can apply manually.
+
+#### Edit Mode
+Copilot can directly edit files in your workspace based on natural language instructions. Invoke from the chat panel and describe what changes you want — Copilot generates a diff you can accept or reject.
+
+#### Agent Mode
+The most powerful mode — Copilot autonomously plans and executes multi-step tasks:
+- Reads files, searches the codebase, runs terminal commands
+- Iterates on errors (re-reads, re-edits, re-runs)
+- Uses tools including MCP servers, terminal, and file operations
+- Ideal for: "Add a health check endpoint to the BFF", "Fix the failing E2E tests"
+
+**Road Trip Planner Example** (Agent Mode):
+```
+@workspace Add a /api/health endpoint to the BFF that checks connectivity 
+to all three backend services (Python :8000, C# :8081, Java :8082) 
+and returns aggregate status
+```
+Agent Mode will: read the BFF source, add the endpoint, add health check logic, run tests, and fix any errors.
+
+#### Copilot Coding Agent (GitHub-hosted)
+Runs autonomously in a GitHub-hosted environment — triggered by assigning Copilot to a GitHub Issue:
+1. Copilot creates a branch, sets up the environment (including Docker Compose)
+2. Plans and implements changes across multiple files
+3. Opens a Pull Request with a summary of changes
+4. Iterates on PR review feedback automatically
+
+**Requirements**: Repository must have a `devcontainer.json` or `Dockerfile` for environment setup.
+
+> **Tip**: The coding agent respects `.github/copilot-instructions.md`, custom agents, and prompt files — so all your project rules apply automatically.
+
+---
+
+### Path-Specific Custom Instructions
+
+Beyond the repository-wide instruction file, you can create **path-specific instruction files** that apply only to files matching a glob pattern:
+
+**Location**: `.github/instructions/NAME.instructions.md`
+
+**Structure**:
+```markdown
+---
+applyTo: "frontend/src/**/*.tsx"
+---
+
+# React Component Instructions
+- All components must use functional syntax with TypeScript interfaces
+- Use Zustand for state, never Context API for global state
+- Import axiosInstance from '@/utils/axios' for all API calls
+```
+
+```markdown
+---
+applyTo: "backend/**/*.py"
+---
+
+# Python Backend Instructions  
+- Use Pydantic models for all request/response schemas
+- Business logic in *_service.py files, not in main.py
+- Use HTTPException with clear status codes and detail messages
+```
+
+**When Copilot generates code** matching the `applyTo` glob, these instructions are automatically included in context — no explicit reference needed.
+
+**Road Trip Planner Use Cases**:
+- `frontend-components.instructions.md` → `applyTo: "frontend/src/components/**"`
+- `java-controllers.instructions.md` → `applyTo: "backend-java/src/**/*.java"`
+- `terraform-infra.instructions.md` → `applyTo: "infrastructure/terraform/**/*.tf"`
+
+---
+
+### Copilot Spaces (Preview)
+
+**Copilot Spaces** provide shared, persistent context for your team — a curated knowledge base that Copilot uses when answering questions or generating code.
+
+**Key Features**:
+- Attach files, repos, and free-form notes as context
+- Share spaces with your team for consistent AI-assisted development
+- Copilot references the space content automatically during conversations
+
+**Road Trip Planner Example**: Create a "Road Trip Architecture" space containing:
+- `ARCHITECTURE.md`, `docker-compose.yml`, `copilot-instructions.md`
+- Notes about the BFF routing pattern and service boundaries
+- API contract documentation between BFF and backend services
+
+---
+
+### Model Selection
+
+GitHub Copilot supports multiple AI models — choose the right one for the task:
+
+| Model | Best For | Speed | Reasoning |
+|-------|----------|-------|-----------|
+| **GPT-4o** | General coding, completions | Fast | Good |
+| **Claude Sonnet 4** | Complex refactoring, long files | Medium | Excellent |
+| **o1-preview** | Architecture decisions, complex logic | Slow | Superior |
+| **GPT-4.1** | Instruction following, agents | Fast | Very Good |
+
+**How to Select**: Click the model picker dropdown in the Copilot Chat panel, or specify `model:` in agent YAML frontmatter.
+
+**Road Trip Planner Agents Using Specific Models**:
+- `@playwright-tester`: Uses `model: Claude Sonnet 4` for complex E2E test reasoning
+- Most other agents: Default model (GPT-4o) for speed
+
+---
+
+## Prompting Techniques
+
+### What is Chain-of-Thought Prompting?
+
+**Chain-of-Thought (CoT) Prompting** breaks complex problems into step-by-step reasoning, making AI show its work instead of jumping to solutions.
+
+**How It Works**:
+- Instead of: "Build a vehicle routing feature"
+- Use: "Let's plan step-by-step: 1) Analyze Mapbox API truck profile docs, 2) Design endpoint parameters, 3) Update schema..."
+
+**Example from Workshop 3** (Simplified Issue #6: Vehicle-Aware Routing):
+
+**❌ Without Chain-of-Thought** (vague, risky):
+```
+Prompt: "Add vehicle type to routing API"
+
+Copilot: *Generates 200 lines of code with unknown logic*
+```
+
+**✅ With Chain-of-Thought** (structured, verifiable):
+```
+Prompt: "Plan vehicle-aware routing feature step-by-step:
+
+Step 1: Research - What Mapbox truck profile parameters exist?
+Step 2: Design - How should /api/directions accept vehicle_type?
+Step 3: Schema - Update DirectionsRequest Pydantic model
+Step 4: Logic - Map vehicle_type to Mapbox profile parameter
+Step 5: Test - Verify RV vs car returns different routes"
+
+Copilot: 
+"Step 1: Mapbox supports these profiles:
+- driving-traffic (cars)
+- driving (no traffic data)
+- walking, cycling
+- truck (NEW - supports height, weight, hazmat restrictions)
+
+Step 2: Add optional vehicle_type to existing endpoint:
+POST /api/directions
+{
+  'coordinates': [[lng, lat], ...],
+  'vehicle_type': 'RV' | 'car' | 'truck' (optional)
+}
+
+Step 3: Update schemas.py:
+class DirectionsRequest(BaseModel):
+    coordinates: List[List[float]]
+    vehicle_type: Optional[str] = 'car'
+
+..."
+```
+
+**When to Use CoT**:
+- ✅ Complex features (routing logic, AI integration, multi-step migrations)
+- ✅ Unfamiliar APIs (first time using Mapbox truck profile)
+- ✅ Debugging (trace error from frontend → backend → database)
+- ❌ Simple tasks (adding a prop to a component)
+- ❌ Well-known patterns (creating a React component)
+
+**Real Workshop Demo** (Advanced Workshop, Demo 1):
+```
+Instructor: "Let's use chain-of-thought to plan vehicle routing:
+
+1. What Mapbox API parameters control vehicle restrictions?
+2. How do we map our vehicle specs (height, weight) to Mapbox format?
+3. What error handling do we need if vehicle can't fit route?
+4. How do we display 'Route safe for RV' in the UI?"
+
+[Copilot generates step-by-step plan with code examples]
+```
+
+---
+
+### What is Few-Shot Prompting?
+
+**Few-Shot Prompting** teaches Copilot by showing examples of desired output, then asking it to generate similar code.
+
+**Pattern**: "Here are 2-3 examples... now create one for X"
+
+**Example from Workshop 2** (SQLAlchemy Relationships):
+
+```python
+# Show existing pattern (1-2 examples):
+"""
+Example 1: User has many Trips (one-to-many)
+class User(Base):
+    trips = relationship("Trip", back_populates="owner")
+
+class Trip(Base):
+    user_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="trips")
+
+Example 2: Trip has many Stops (one-to-many)
+class Trip(Base):
+    stops_relation = relationship("Stop", back_populates="trip")
+
+Now create: VehicleSpec has one Trip (one-to-one relationship)
+"""
+
+# Copilot generates following the pattern:
+class VehicleSpec(Base):
+    __tablename__ = "vehicle_specs"
+    
+    trip_id = Column(Integer, ForeignKey("trips.id"), unique=True)
+    trip = relationship("Trip", back_populates="vehicle_spec", uselist=False)
+
+class Trip(Base):
+    vehicle_spec = relationship("VehicleSpec", back_populates="trip", uselist=False)
+```
+
+**When to Use Few-Shot**:
+- ✅ Project-specific patterns (Zustand slice structure, Pydantic schemas)
+- ✅ API conventions (all endpoints return `{"data": ..., "error": null}`)
+- ✅ Repetitive tasks (create 5 similar React components)
+- ❌ Standard library usage (Copilot already knows React hooks)
+- ❌ Simple CRUD operations (basic patterns well-known)
+
+**Real Workshop Demo** (Intermediate Workshop, Demo 4):
+```typescript
+// Show Copilot 2 existing Zustand slices:
+
+// Example 1: addStop
+addStop: (stop: Stop) => 
+  set((state) => ({ stops: [...state.stops, stop] }))
+
+// Example 2: removeStop
+removeStop: (stopId: string) => 
+  set((state) => ({ 
+    stops: state.stops.filter(s => s.id !== stopId) 
+  }))
+
+// Now ask: "Create updateStop following this pattern"
+
+// Copilot generates:
+updateStop: (stopId: string, updates: Partial<Stop>) =>
+  set((state) => ({
+    stops: state.stops.map(s => s.id === stopId ? { ...s, ...updates } : s)
+  }))
+```
+
+---
+
+### What is Tree-of-Thoughts Prompting?
+
+**Tree-of-Thoughts (ToT) Prompting** explores multiple solution paths simultaneously, evaluates trade-offs, then selects the best approach.
+
+**Pattern**: "Generate 3 different approaches to solve X, compare pros/cons, recommend best"
+
+**Example** (Choosing state management for mobile app):
+
+```
+Prompt: "We need state management for React Native trip planner. 
+Generate 3 different approaches:
+1. Zustand
+2. Redux Toolkit
+3. React Context + useReducer
+
+For each, analyze:
+- Bundle size impact
+- TypeScript support
+- Debugging tools
+- Learning curve
+- Persistence strategy (AsyncStorage)
+
+Recommend best option with justification."
+
+Copilot Response:
+"Option 1: Zustand
+Pros:
+- Smallest bundle (2.9kb gzipped)
+- Excellent TypeScript inference
+- Simple persistence: import { persist } from 'zustand/middleware'
+- Minimal boilerplate
+
+Cons:
+- Smaller ecosystem than Redux
+- No built-in DevTools (community plugin available)
+
+Option 2: Redux Toolkit
+Pros:
+- Industry standard (large community)
+- Best DevTools (Redux DevTools)
+- Well-documented persistence (redux-persist)
+
+Cons:
+- Larger bundle (~45kb gzipped)
+- More boilerplate (slices, actions, reducers)
+- Steeper learning curve
+
+Option 3: React Context + useReducer
+Pros:
+- Built-in (no dependencies)
+- Full control over implementation
+
+Cons:
+- Manual persistence implementation
+- Performance issues with frequent updates
+- No DevTools
+- More code to maintain
+
+Recommendation: **Zustand**
+Rationale: For a mobile app, bundle size is critical. Zustand's 2.9kb vs Redux's 45kb 
+means faster app startup. TypeScript support is excellent. Persistence is one line of code.
+Trade-off: Slightly less mature DevTools, but community plugin (zustand-devtools) works well."
+```
+
+**When to Use ToT**:
+- ✅ Architecture decisions (BFF vs microservices, SQL vs NoSQL)
+- ✅ Performance optimizations (caching strategy, state management)
+- ✅ Trade-off analysis (TypeScript strict mode vs gradual adoption)
+- ❌ Single-solution problems (fix a specific bug)
+- ❌ Well-established patterns (use React Router for routing)
+
+**Real Workshop Use Case** (Expert Workshop, Demo 3):
+```
+Spec Kit Workflow: "Generate 3 approaches for AI trip generation feature:
+1. Azure OpenAI via C# backend (current integration)
+2. Azure OpenAI with Semantic Kernel orchestration
+3. LangChain + multiple providers
+
+Compare: Cost per request, latency, context window, Azure integration, vendor lock-in.
+Recommend best for production deployment."
+```
+
+---
+
+### What is Self-Consistency Prompting?
+
+**Self-Consistency Prompting** generates multiple solutions to the same problem, identifies commonalities, and produces a more robust final answer.
+
+**Pattern**: "Generate 5 different implementations, identify best practices across all, create final version"
+
+**Example** (Error handling in FastAPI):
+
+```python
+Prompt: """Generate 3 different error handling approaches for this FastAPI endpoint:
+
+@app.get("/api/trips/{trip_id}")
+async def get_trip(trip_id: int):
+    # Handle: trip not found, invalid ID, database error
+    
+Compare solutions and create final version using best practices from each."""
+
+# Copilot generates 3 versions:
+
+# Version 1: Try-catch with HTTPException
+try:
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    return trip
+except SQLAlchemyError as e:
+    raise HTTPException(status_code=500, detail="Database error")
+
+# Version 2: Early returns with status codes
+if trip_id < 1:
+    raise HTTPException(status_code=400, detail="Invalid trip ID")
+    
+trip = db.query(Trip).filter(Trip.id == trip_id).first()
+if not trip:
+    raise HTTPException(status_code=404, detail=f"Trip {trip_id} not found")
+return trip
+
+# Version 3: Dependency injection with error handling
+async def get_trip(trip_id: int, db: Session = Depends(get_db)):
+    if trip_id < 1:
+        raise HTTPException(400, "Invalid ID")
+    
+    trip = db.query(Trip).get(trip_id)
+    if not trip:
+        raise HTTPException(404, f"Trip {trip_id} not found")
+    return trip
+
+# Final version (combines best practices from all 3):
+@app.get("/api/trips/{trip_id}", response_model=TripResponse)
+async def get_trip(
+    trip_id: int = Path(..., gt=0, description="Trip ID must be positive"),
+    db: Session = Depends(get_db)
+) -> Trip:
+    """
+    Retrieve a trip by ID.
+    
+    Raises:
+        HTTPException 400: Invalid trip ID (negative or zero)
+        HTTPException 404: Trip not found
+        HTTPException 500: Database error
+    """
+    try:
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if not trip:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Trip {trip_id} not found"
+            )
+        return trip
+    except SQLAlchemyError as e:
+        logger.error(f"Database error fetching trip {trip_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail="Database error occurred"
+        )
+```
+
+**What Self-Consistency Extracted**:
+1. ✅ Path validation (from Version 2 & 3)
+2. ✅ Descriptive error messages (from Version 2)
+3. ✅ Dependency injection (from Version 3)
+4. ✅ Try-catch for database errors (from Version 1)
+5. ✅ Docstring with error documentation (new best practice)
+6. ✅ Logging before re-raising errors (new best practice)
+
+**When to Use Self-Consistency**:
+- ✅ Critical code paths (authentication, payment processing)
+- ✅ Security-sensitive logic (input validation, SQL injection prevention)
+- ✅ Complex algorithms (route optimization, data transformations)
+- ❌ Trivial functions (getters, setters)
+- ❌ Well-tested patterns (standard React components)
+
+---
+
+## Best Practices for AI-Assisted Web Development
+
+### 1. Provide Clear Context for Better Suggestions
+
+**❌ Bad Context**:
+```typescript
+// Create component
+```
+
+**✅ Good Context**:
+```typescript
+// Create a TripCard component for AllTripsView.tsx
+// Props: trip (Trip type), onClick (callback)
+// Display: trip.name, trip.distance_miles, trip.image_url
+// Style: Tailwind CSS card with hover effect
+// Matches existing pattern in ExploreView.tsx
+```
+
+**Why**: Copilot analyzes surrounding code. More details = better suggestions.
+
+**Techniques**:
+1. **Reference existing files**: "Following pattern in MapComponent.tsx..."
+2. **Specify tech stack**: "Using Zustand, not Redux"
+3. **Include type hints**: "Props: trip (Trip interface from types/)"
+4. **Mention style patterns**: "Use Tailwind CSS classes like AllTripsView"
+
+---
+
+### 2. Use Iterative Acceptance of Suggestions
+
+**❌ Bad Practice**: Accept entire 200-line Copilot suggestion blindly
+
+**✅ Good Practice**: Accept line-by-line or block-by-block, verifying logic
+
+**Example** (FloatingPanel.tsx refactor):
+```typescript
+// Copilot suggests entire function...
+
+// Step 1: Accept function signature (verify correct)
+const saveTripHandler = async () => {
+  ✓ ACCEPT
+
+// Step 2: Accept validation logic (verify against schema)
+  if (!tripName || stops.length < 2) {
+    ✓ ACCEPT
+    
+// Step 3: Review API call (check endpoint matches BFF route)
+  const response = await axiosInstance.post('/api/trips', {
+    ✓ ACCEPT - uses axiosInstance with BFF route
+    
+// Step 4: Accept error handling (verify matches project pattern)
+  } catch (error) {
+    console.error('Failed to save trip:', error);
+    ✓ ACCEPT
+```
+
+**Tips**:
+- **Tab**: Accept current line only
+- **Cmd/Ctrl + →**: Accept word-by-word
+- **Esc**: Reject entire suggestion
+- **Alt + ]**: Cycle to next suggestion
+
+---
+
+### 3. Be Mindful of Security and Privacy
+
+**Critical Security Rules**:
+
+**❌ NEVER expose secrets in frontend**:
+```typescript
+// WRONG - Exposes secret token in browser AND calls external API directly
+const MAPBOX_SECRET_TOKEN = 'sk.ey1234...';
+const response = await axios.get(`https://api.mapbox.com/...?access_token=${MAPBOX_SECRET_TOKEN}`);
+```
+
+**✅ ALWAYS proxy through BFF**:
+```typescript
+// CORRECT - Frontend calls BFF via axiosInstance, BFF routes to backend
+import axiosInstance from '@/utils/axios';  // Auto-adds auth token
+
+const response = await axiosInstance.post('/api/directions', {
+  coordinates: [...]
+});
+// axiosInstance.baseURL = import.meta.env.VITE_API_URL (BFF port 3000)
+// BFF proxies to Java backend (port 8082) which calls Mapbox with server-side token
+
+// Java Backend (DirectionsController.java) uses server-side token
+@PostMapping("/api/directions")
+public ResponseEntity<DirectionsResponse> getDirections(@RequestBody DirectionsRequest request) {
+    // MAPBOX_TOKEN stored in environment, never exposed to frontend
+    return directionsService.getDirections(request);
+}
+```
+
+**API Key Checklist**:
+- ✅ Backend `.env` file gitignored
+- ✅ Frontend only has public tokens (VITE_MAPBOX_TOKEN = pk.xxx)
+- ✅ No hardcoded credentials in docker-compose.yml (Issue #3)
+- ✅ Azure Key Vault for production secrets
+- ❌ NEVER commit API keys to Git
+
+**Privacy Considerations**:
+- **Be careful with Copilot's training**: Disable Copilot for files with sensitive data (PII, credentials)
+- **Review suggestions**: Copilot may suggest patterns from public repos that violate your security policies
+- **Sanitize logs**: Don't log user emails, passwords, tokens (Copilot learns from context)
+
+---
+
+### 4. Customize Copilot for Your Needs
+
+**Instruction File Customization** (.github/copilot-instructions.md):
+
+```markdown
+## Road Trip Planner-Specific Rules
+
+### State Management
+- ALWAYS use Zustand for global state
+- NEVER suggest Redux, MobX, or Context API
+- Pattern: Immutable updates with `set((state) => ({ ...state, newValue }))`
+
+### Coordinate Format
+- ALWAYS use [longitude, latitude] (GeoJSON spec)
+- NEVER use [latitude, longitude] (Google Maps format)
+- Example: San Francisco = [-122.4194, 37.7749]
+
+### API Integration
+- ALWAYS proxy external APIs through backend
+- NEVER call Mapbox/Azure OpenAI directly from frontend
+- Pattern: Frontend → BFF (port 3000) → Backend Service → External API
+
+### TypeScript Standards
+- NO `any` types allowed
+- ALL component props require interface definitions
+- Use `unknown` for truly dynamic types
+```
+
+**VS Code Settings** (.vscode/settings.json):
+```json
+{
+  "github.copilot.enable": {
+    "*": true,
+    "markdown": true,
+    ".env": false  // Disable for sensitive files
+  },
+  "github.copilot.advanced": {
+    "listCount": 10,  // Show more suggestions
+    "inlineSuggestCount": 3  // More inline options
+  }
+}
+```
+
+**Per-File Disabling**:
+```typescript
+// copilot:disable
+const API_KEY = process.env.SECRET_KEY;  // Copilot won't learn this
+// copilot:enable
+```
+
+---
+
+### 5. Copilot Chat for Debugging and Exploration
+
+**Effective Chat Prompts**:
+
+**❌ Vague**:
+```
+"Why doesn't my map work?"
+```
+
+**✅ Specific**:
+```
+"The Mapbox map in MapComponent.tsx shows markers in the wrong location. 
+I'm passing coordinates as [lat, lng] but the map expects [lng, lat]. 
+How do I fix the coordinate order in the stops array?"
+```
+
+**Chat Patterns**:
+
+**1. Debugging**:
+```
+@workspace Why is the route not displaying on the map after I save a trip?
+
+Context:
+- FloatingPanel.tsx saves trip with route_geojson
+- backend/main.py POST /api/trips endpoint receives route_geojson
+- AllTripsView.tsx loads trip but map is blank
+
+Expected: Route line should render on map
+Actual: No route line, only markers
+```
+
+**2. Code Explanation**:
+```
+/explain this function
+
+[Select complex code block in editor]
+
+What does this authentication flow do step-by-step?
+```
+
+**3. Refactoring**:
+```
+/refactor Extract duplicate image URL logic to utils/images.ts
+
+[Select code in AllTripsView.tsx]:
+const imageUrl = trip.image_url || 'https://images.unsplash.com/...'
+
+[Select similar code in ExploreView.tsx]:
+const imageUrl = trip.image_url || 'https://images.unsplash.com/...'
+```
+
+**4. Test Generation**:
+```
+@workspace /tests Generate Vitest test for useTripStore.addStop function
+
+Requirements:
+- Test immutability (original state unchanged)
+- Test stop is appended to array
+- Test order is preserved
+```
+
+---
+
+### 6. Understand Limitations
+
+**What Copilot Can't Do**:
+
+1. **❌ Access External APIs/Docs Without MCP**
+   - Copilot's training data is static (cutoff date)
+   - May suggest outdated API versions (Mapbox v4 instead of v5)
+   - **Solution**: Use `@context7` MCP server for latest docs
+
+2. **❌ Understand Your Full Architecture**
+   - Doesn't know you use BFF pattern, Zustand, or specific project conventions
+   - May suggest Redux even though you use Zustand
+   - **Solution**: Comprehensive instruction file
+
+3. **❌ Guarantee Security or Correctness**
+   - May suggest insecure patterns (SQL injection, XSS vulnerabilities)
+   - **Solution**: Always review suggestions, run tests
+
+4. **❌ Replace Code Reviews**
+   - AI can't catch business logic errors or architectural misalignment
+   - **Solution**: Human review for critical code paths
+
+5. **❌ Handle Breaking Changes Automatically**
+   - If Mapbox API changes, Copilot won't auto-update your code
+   - **Solution**: Integration tests, monitor changelogs
+
+**When to Trust Copilot**:
+- ✅ Boilerplate code (component scaffolding, CRUD endpoints)
+- ✅ Common patterns (React hooks, FastAPI route handlers)
+- ✅ Refactoring (extract functions, rename variables)
+- ✅ Documentation (generate docstrings, comments)
+
+**When to Be Skeptical**:
+- ⚠️ Security-critical code (authentication, authorization)
+- ⚠️ Performance-critical paths (database queries, loops)
+- ⚠️ External API integrations (verify against official docs)
+- ⚠️ Project-specific patterns (coordinate format, state management)
+
+---
+
+### 6. Instruction File Tiers Strategy
+
+Use a layered approach to Copilot instructions for maximum effectiveness:
+
+| Tier | File | Scope | Example |
+|------|------|-------|---------|
+| **Repository-wide** | `.github/copilot-instructions.md` | All files | Architecture rules, tech stack lock-in |
+| **Path-specific** | `.github/instructions/*.instructions.md` | Files matching `applyTo` glob | React patterns for `frontend/`, Python patterns for `backend/` |
+| **Agent-specific** | `.github/copilot-agents/*.agent.md` | When agent is invoked | TDD workflow, accessibility audit rules |
+
+**Rule of Thumb**: Put broadly-applicable rules in the instruction file, language/framework-specific rules in path-specific files, and task-specific rules in agents.
+
+---
+
+### 7. Agent Chaining Workflow
+
+Chain multiple agents together for complex tasks — each agent handles its specialty:
+
+```bash
+# Full TDD workflow using agent handoffs
+@task-researcher "Research best practices for offline trip sync"
+    → @task-planner "Create implementation plan for offline mode"
+        → @tdd-red "Write failing tests for sync queue"
+            → @tdd-green "Implement minimal sync queue to pass tests"
+                → @tdd-refactor "Clean up sync queue, extract service layer"
+                    → @code-reviewer "Review the implementation"
+```
+
+**Automated Handoffs**: Agents configured with `handoffs:` in their YAML frontmatter can delegate to other agents automatically. For example, `@tdd-red` can hand off to `@tdd-green` when tests are written.
+
+---
+
+### 8. MCP Server Security Best Practices
+
+When using MCP servers (especially remote ones), follow these security guidelines:
+
+- **Secret Management**: Use `${{ secrets.SECRET_NAME }}` in agent files — never hardcode API keys
+- **Push Protection**: GitHub MCP server has built-in push protection to block secrets in AI responses
+- **Scope Limiting**: Only grant MCP servers the `tools:` they need (e.g., `["resolve-library-id", "get-library-docs"]`)
+- **Enterprise Controls**: Org admins can enable/disable MCP via the "MCP servers in Copilot" policy
+- **Audit**: Review which MCP servers are configured in `.github/copilot-agents/` and `.vscode/settings.json`
+
+---
+
+## Common Pitfalls & How to Avoid Them
+
+### 1. Replacing Existing Tech Stack
+
+**Pitfall**: Copilot suggests Redux when project uses Zustand
+
+**Why It Happens**: Copilot defaults to popular patterns (Redux is more common than Zustand)
+
+**How to Avoid**:
+```markdown
+# .github/copilot-instructions.md
+## State Management
+- ALWAYS use Zustand (NOT Redux, MobX, Context API)
+- Pattern: create((set) => ({ ... }))
+- File location: src/store/useTripStore.ts
+```
+
+**Example**:
+```typescript
+// Without instruction file:
+// Developer: "Create state for user authentication"
+// Copilot suggests:
+import { createSlice } from '@reduxjs/toolkit';  // WRONG!
+
+// With instruction file:
+// Copilot suggests:
+import { create } from 'zustand';  // CORRECT!
+```
+
+---
+
+### 2. Forgetting to Proxy External APIs
+
+**Pitfall**: Frontend calls Mapbox directly, exposing secret token in browser
+
+**Security Impact**: High - API keys can be extracted from JavaScript, leading to quota abuse
+
+**How to Avoid**:
+```markdown
+# .github/copilot-instructions.md
+## Security: API Proxy Pattern
+- ALL external API calls (Mapbox, Azure OpenAI, Azure Maps) MUST go through BFF
+- Frontend NEVER calls backend services directly — ALL requests go through BFF (port 3000)
+- Pattern: Frontend → BFF (port 3000) → Java/C#/Python backend → External API
+```
+
+---
+
+### 3. Using `any` in TypeScript
+
+**Pitfall**: Copilot suggests `any` type, breaking type safety
+
+**Example**:
+```typescript
+// Copilot suggestion:
+function calculateDistance(stops: any[]) {  // WRONG!
+  return stops.reduce((total, stop) => total + stop.distance, 0);
+}
+
+// Correct (with instruction file):
+interface Stop {
+  name: string;
+  coordinates: [number, number];
+  distance?: number;
+}
+
+function calculateDistance(stops: Stop[]) {  // CORRECT!
+  return stops.reduce((total, stop) => total + (stop.distance || 0), 0);
+}
+```
+
+**Instruction File Rule**:
+```markdown
+## TypeScript Standards
+- NO `any` types allowed
+- Use `unknown` for truly dynamic types, then narrow with type guards
+- All component props require interface definitions
+```
+
+**Real Violations in the Codebase** (found by `@tech-debt-remediation-plan`):
+```typescript
+// frontend/src/store/useTripStore.ts — lines 140, 198, 246
+} catch (error: any) {  // ❌ Should be: catch (error: unknown)
+  console.error('Failed to save trip:', error);
+}
+
+// frontend/src/utils/axios.ts — lines 12-13
+let failedQueue: Array<{
+  resolve: (value?: any) => void;  // ❌ Should be typed to token/void
+  reject: (reason?: any) => void;  // ❌ Should use Error | null
+}>;
+```
+
+```python
+# backend/schemas.py — lines 37-38
+stops: List[Any]          # ❌ Should be: List[StopSchema]
+vehicle_specs: Any        # ❌ Should be: Optional[VehicleSpecsSchema]
+```
+
+> **Workshop Exercise**: Use `@tdd-red` to write tests for these, then `@tdd-green` to fix them.
+
+---
+
+### 4. Storing Derived State in Zustand
+
+**Pitfall**: Storing calculated values (like total distance) in store instead of computing on-the-fly
+
+**Example**:
+```typescript
+// ❌ WRONG - Storing derived state
+interface TripStore {
+  stops: Stop[];
+  totalDistance: number;  // BAD - needs manual updates
+  updateTotalDistance: () => void;
+}
+
+// ✅ CORRECT - Calculate on-the-fly
+interface TripStore {
+  stops: Stop[];
+  // No totalDistance stored
+}
+
+// In component:
+const totalDistance = useMemo(() => {
+  return stops.reduce((sum, stop) => sum + (stop.distance || 0), 0);
+}, [stops]);
+```
+
+**Why**: Derived state can become stale if you forget to update it when `stops` changes.
+
+---
+
+### 5. Direct Database Queries in Route Handlers
+
+**Pitfall**: Putting business logic in FastAPI route handlers instead of service modules
+
+**Example**:
+```python
+# ❌ WRONG - Logic in route handler
+@app.post("/api/trips")
+async def create_trip(trip: TripCreate, db: Session = Depends(get_db)):
+    db_trip = Trip(
+        name=trip.name,
+        stops=trip.stops,
+        user_id=1  # Complex user lookup logic here
+    )
+    db.add(db_trip)
+    db.commit()
+    return db_trip
+
+# ✅ CORRECT - Logic in service module
+# services/trip_service.py
+def create_trip(db: Session, trip: TripCreate, user_id: int) -> Trip:
+    db_trip = Trip(
+        name=trip.name,
+        stops=trip.stops,
+        user_id=user_id
+    )
+    db.add(db_trip)
+    db.commit()
+    db.refresh(db_trip)
+    return db_trip
+
+# main.py
+@app.post("/api/trips")
+async def create_trip(
+    trip: TripCreate, 
+    user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return trip_service.create_trip(db, trip, user.id)
+```
+
+**Instruction File Rule**:
+```markdown
+## Backend Architecture
+- Route handlers in main.py: validation, auth, serialization ONLY
+- Business logic in services/*_service.py
+- Keep main.py under 400 lines
+```
+
+---
+
+### 6. Hardcoding API Tokens
+
+**Pitfall**: Committing `.env` files or hardcoding secrets in `docker-compose.yml`
+
+**How to Avoid**:
+1. Add to `.gitignore`:
+   ```
+   .env
+   .env.local
+   .env.production
+   backend/.env
+   frontend/.env.local
+   ```
+
+2. Create `.env.example` templates:
+   ```bash
+   # backend/.env.example
+   DATABASE_URL=postgresql://user:password@localhost:5432/road_trip_db
+   MAPBOX_TOKEN=your_token_here
+   GOOGLE_CLIENT_ID=your_client_id_here
+   
+   # backend-csharp/.env.example (Azure OpenAI)
+   AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+   AZURE_OPENAI_API_KEY=your_key_here
+   AZURE_OPENAI_DEPLOYMENT=gpt-4o
+   
+   # frontend/.env.example
+   VITE_API_URL=http://localhost:3000   # BFF port
+   VITE_MAPBOX_TOKEN=pk.your_public_token_here
+   ```
+
+3. Use environment variables in CI/CD:
+   ```yaml
+   # .github/workflows/backend.yml
+   env:
+     MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
+   ```
+
+---
+
+### 7. Coordinate Format Confusion
+
+**Pitfall**: Using `[lat, lng]` instead of `[lng, lat]` (GeoJSON standard)
+
+**Example**:
+```typescript
+// ❌ WRONG (Google Maps format)
+const sanFrancisco = [37.7749, -122.4194];  // [lat, lng]
+
+// Map renders in middle of ocean (coordinates reversed!)
+<Marker latitude={sanFrancisco[0]} longitude={sanFrancisco[1]} />
+
+// ✅ CORRECT (GeoJSON format)
+const sanFrancisco = [-122.4194, 37.7749];  // [lng, lat]
+
+<Marker longitude={sanFrancisco[0]} latitude={sanFrancisco[1]} />
+```
+
+**How to Avoid**:
+```markdown
+# .github/copilot-instructions.md
+## Coordinate Format Convention
+- ALWAYS use GeoJSON format: [longitude, latitude]
+- NEVER use [latitude, longitude] (Google Maps format)
+- Mapbox GL JS requires [lng, lat] order
+- Example: San Francisco = [-122.4194, 37.7749]
+```
+
+---
+
+## Quick Reference
+
+### Copilot Keyboard Shortcuts (VS Code)
+
+| Action | macOS | Windows/Linux |
+|--------|-------|---------------|
+| **Accept suggestion** | `Tab` | `Tab` |
+| **Accept line** | `Cmd + →` | `Ctrl + →` |
+| **Reject suggestion** | `Esc` | `Esc` |
+| **Next suggestion** | `Alt + ]` | `Alt + ]` |
+| **Previous suggestion** | `Alt + [` | `Alt + [` |
+| **Open Chat** | `Cmd + I` | `Ctrl + I` |
+| **Ask in Chat** | `Cmd + Shift + I` | `Ctrl + Shift + I` |
+
+### Copilot Chat Commands
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `/explain` | Explain selected code | `/explain` (select function) |
+| `/tests` | Generate tests | `/tests` (select function) |
+| `/fix` | Fix errors | `/fix` (select buggy code) |
+| `/doc` | Add documentation | `/doc` (select function) |
+| `@workspace` | Search entire project | `@workspace where is routing logic?` |
+| `@terminal` | Explain terminal errors | `@terminal why did npm install fail?` |
+
+### Agent Invocation Patterns
+
+| Agent | Purpose | Example Usage |
+|-------|---------|---------------|
+| `@tdd-red` | Write failing test | `@tdd-red Write test for FloatingPanel props` |
+| `@tdd-green` | Implement to pass test | `@tdd-green Fix TypeScript any in props` |
+| `@tdd-refactor` | Clean up code | `@tdd-refactor Extract duplicate logic` |
+| `@debug` | Investigate bug | `@debug Why are map markers wrong location?` |
+| `@context7` | Fetch library docs | `@context7 Mapbox Directions API truck profile` |
+| `@terraform-azure-planning` | Plan infrastructure | `@terraform-azure-planning Create VNet module` |
+
+### Prompting Template — CORE Framework
+
+All workshops use the **CORE** prompting framework — a structured 4-element approach for consistent, high-quality Copilot results:
+
+| Letter | Element | Description |
+|--------|---------|-------------|
+| **C** | **Context** | Background — project, tech stack, current file, libraries |
+| **O** | **Objective** | What you want — create, debug, refactor, explain, test |
+| **R** | **Requirements** | Constraints — types, patterns, accessibility, styling, architecture rules |
+| **E** | **Examples** | Existing code patterns to follow |
+
+```
+Context:      [Project name, tech stack, current file]
+Objective:    [What you want to achieve]
+Requirements: [Architecture rules, type constraints, styling choices]
+Examples:     [Show similar existing code or patterns]
+
+Example:
+Context: Road Trip Planner, React + TypeScript + Zustand, types/VehicleOption.ts
+Objective: Create a vehicle selector dropdown component
+Requirements: Use Tailwind CSS, VehicleType union from types/index.ts, no external UI libraries
+Examples: See FloatingPanel.tsx line 45-60 for similar dropdown pattern
+```
+
+> **Note**: This is a simplified version of the 5-element CGCER template (Context, Goal, Constraints, Example, Request) shown below. CORE reduces overhead while keeping the most impactful elements. Both formats work — CORE is recommended for workshops.
+
+<details>
+<summary>Expanded CGCER Template (5-element variant)</summary>
+
+```
+Context: [Project name, tech stack, current file]
+Goal: [What you want to achieve]
+Constraints: [Architecture rules, tech choices]
+Example: [Show similar existing code]
+Request: [Specific task for Copilot]
+```
+</details>
+
+---
+
+**Next Steps**:
+- ✅ Complete workshop setup: `setup/00-setup-instructions.md`
+- ➡️ **Start Workshop 1 (React Focus)**: `01-foundational-react-dev.md` (All 7 Copilot capabilities with CORE framework, React/TypeScript exercises)
+- ➡️ **Start Workshop 1 (Full Stack)**: `01-foundational-web-dev.md` (Inline suggestions, comment generation, React + FastAPI)
+- 📚 Refer back to this guide during workshops for definitions and best practices
+
+---
+
+**Workshop Series Navigation**:
+1. **Foundational (React)** → `01-foundational-react-dev.md` — All 7 Copilot capabilities, CORE prompting, React/TypeScript
+1. **Foundational (Full Stack)** → `01-foundational-web-dev.md` — Inline suggestions, security, React + FastAPI
+2. **Intermediate** → Prompting, refactoring, state management
+3. **Advanced** → Chain-of-thought, agents, TDD, instruction files
+4. **Expert** → MCP servers, custom agents, Spec Kit, architecture generation
+
+---
+
+## References & Further Reading
+
+**GitHub Documentation**:
+- [What is GitHub Copilot?](https://docs.github.com/en/copilot/about-github-copilot/what-is-github-copilot) — Official overview, supported IDEs, features
+- [Custom Instructions for Copilot](https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot) — `.github/copilot-instructions.md` setup
+- [Using MCP with Copilot](https://docs.github.com/en/copilot/customizing-copilot/extending-the-functionality-of-github-copilot-in-vs-code-with-mcp) — MCP server configuration guide
+- [Copilot Coding Agent](https://docs.github.com/en/copilot/using-github-copilot/using-the-github-copilot-coding-agent) — Assigning Copilot to issues
+- [Copilot Chat in VS Code](https://docs.github.com/en/copilot/using-github-copilot/asking-github-copilot-questions-in-your-ide) — Ask, Edit, and Agent modes
+
+**Project-Specific References**:
+- [ARCHITECTURE.md](../../ARCHITECTURE.md) — Full polyglot microservices architecture documentation
+- [ROADMAP.md](../../ROADMAP.md) — Project milestones and issue tracking
+- [copilot-instructions.md](../../../.github/copilot-instructions.md) — The actual 471-line instruction file
+- [SEMANTIC_VERSIONING_GUIDE.md](../../SEMANTIC_VERSIONING_GUIDE.md) — Version management workflow
+
+**Microsoft Learn**:
+- [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/copilot/overview) — VS Code-specific feature guide
+- [Best Practices for Using Copilot](https://learn.microsoft.com/en-us/shows/introduction-to-github-copilot/best-practices-for-using-github-copilot) — Microsoft Learn module
