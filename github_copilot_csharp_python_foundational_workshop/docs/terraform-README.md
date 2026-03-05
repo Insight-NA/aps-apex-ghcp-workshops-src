@@ -89,10 +89,10 @@ Set sensitive values via environment variables (never commit these!):
 ```bash
 export TF_VAR_mapbox_token="pk.xxx..."
 export TF_VAR_google_client_id="xxx.apps.googleusercontent.com"
-export TF_VAR_jwt_secret_key="your-32-character-minimum-secret-key"
+export TF_VAR_jwt_secret_key=""
 export TF_VAR_gemini_api_key="AIza..."
 export TF_VAR_azure_maps_key="xxx..."
-export TF_VAR_database_admin_password="YourSecurePassword123!"
+export TF_VAR_database_admin_password=""
 ```
 
 ### Step 4: Plan and Apply
