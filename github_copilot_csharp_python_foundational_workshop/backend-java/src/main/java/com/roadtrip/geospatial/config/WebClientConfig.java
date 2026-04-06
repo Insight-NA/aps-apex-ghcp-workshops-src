@@ -2,13 +2,23 @@ package com.roadtrip.geospatial.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.codec.CodecConfigurer;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class WebClientConfig {
 
+    // 10 MB — Mapbox directions responses with full geometry + steps can exceed the 256KB default
+    private static final int MAX_IN_MEMORY_SIZE = 10 * 1024 * 1024;
+
     @Bean
     public WebClient.Builder webClientBuilder() {
-        return WebClient.builder();
+        ExchangeStrategies strategies = ExchangeStrategies.builder()
+                .codecs(configurer -> configurer
+                        .defaultCodecs()
+                        .maxInMemorySize(MAX_IN_MEMORY_SIZE))
+                .build();
+        return WebClient.builder().exchangeStrategies(strategies);
     }
 }

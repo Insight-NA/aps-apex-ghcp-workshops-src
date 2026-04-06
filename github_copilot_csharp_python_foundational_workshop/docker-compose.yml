@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
   # ── Database ──
   postgres:
     image: postgres:15-alpine
+    restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
@@ -21,6 +20,7 @@ services:
   # ── BFF API Gateway (Node.js / Express) ──
   bff:
     build: ./bff
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
@@ -29,17 +29,24 @@ services:
       - CSHARP_BACKEND_URL=http://backend-csharp:8081
       - JAVA_BACKEND_URL=http://backend-java:8082
       - ALLOWED_ORIGINS=http://localhost:5173
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     depends_on:
       backend-python:
-        condition: service_started
+        condition: service_healthy
       backend-csharp:
-        condition: service_started
+        condition: service_healthy
       backend-java:
-        condition: service_started
+        condition: service_healthy
 
   # ── Python Backend (FastAPI) — Trips, Auth, Vehicle Specs Fallback ──
   backend-python:
     build: ./backend
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
@@ -48,6 +55,16 @@ services:
       - AZURE_MAPS_KEY=${AZURE_MAPS_KEY}
       - AI_SERVICE_URL=http://backend-csharp:8081
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-change-in-production}
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret-change-in-production}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,6 +72,7 @@ services:
   # ── C# Backend (ASP.NET Web API) — AI Vehicle Parsing & Trip Generation ──
   backend-csharp:
     build: ./backend-csharp
+    restart: unless-stopped
     ports:
       - "8081:8081"
     environment:
@@ -63,10 +81,17 @@ services:
       - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY:-}
       - AZURE_OPENAI_DEPLOYMENT=${AZURE_OPENAI_DEPLOYMENT:-}
       - ALLOWED_ORIGINS=http://localhost:3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   # ── Java Backend (Spring Boot) — Geospatial Services ──
   backend-java:
     build: ./backend-java
+    restart: unless-stopped
     ports:
       - "8082:8082"
     environment:
@@ -74,6 +99,12 @@ services:
       - MAPBOX_TOKEN=${MAPBOX_TOKEN}
       - AZURE_MAPS_KEY=${AZURE_MAPS_KEY}
       - ALLOWED_ORIGINS=http://localhost:3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
 
   # ── Frontend (React + Vite → Nginx) ──
   frontend:
@@ -82,10 +113,18 @@ services:
       args:
         - VITE_API_URL=http://localhost:3000
         - VITE_MAPBOX_TOKEN=${VITE_MAPBOX_TOKEN}
+    restart: unless-stopped
     ports:
       - "5173:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     depends_on:
-      - bff
+      bff:
+        condition: service_healthy
 
 volumes:
   pgdata:

@@ -17,13 +17,15 @@
 ## Learning Objectives
 
 By the end of this workshop, you will:
-1. **Understand Copilot's Role** — see how Copilot acts as a context-aware pair programmer, not an autocomplete engine
-2. **Provide Clear Context** — write prompts that give Copilot the right signal: language, framework, dependencies, and constraints
-3. **Use Iterative Acceptance** — review and accept suggestions line-by-line; never blindly accept a block
-4. **Customize Copilot** — understand how `.github/copilot-instructions.md` shapes every suggestion in this project
-5. **Leverage Chat for Debugging** — use Copilot Chat to diagnose bugs you can describe but can't immediately locate
-6. **Be Mindful of Security and Privacy** — see why secrets must stay in environment variables and never enter completions
-7. **Understand Limitations** — recognise the patterns where Copilot consistently gets it wrong and know how to correct it
+1. [**Understand Copilot's Role**](#capability-1--understand-copilots-role) — see how Copilot acts as a context-aware pair programmer, not an autocomplete engine
+2. [**Provide Clear Context**](#capability-2--provide-clear-context-comment-anatomy) — write prompts that give Copilot the right signal: language, framework, dependencies, and constraints
+3. [**Use Iterative Acceptance**](#capability-3--iterative-acceptance) — review and accept suggestions line-by-line; never blindly accept a block
+4. [**Customize Copilot**](#capability-4--customize-copilot-the-instruction-file) — understand how `.github/copilot-instructions.md` shapes every suggestion in this project
+5. [**Leverage Chat for Debugging**](#capability-5--chat-for-debugging-the-workflow) — use Copilot Chat to diagnose bugs you can describe but can't immediately locate
+6. [**Be Mindful of Security and Privacy**](#capability-6--be-mindful-of-security-and-privacy) — see why secrets must stay in environment variables and never enter completions
+7. [**Understand Limitations**](#capability-7--understand-limitations) — recognise the patterns where Copilot consistently gets it wrong and know how to correct it
+
+[↑ Back to top](#workshop-1-foundational-web-development-with-github-copilot)
 
 ---
 
@@ -243,11 +245,11 @@ public record GeocodeResponse(
 
 ### Teaching Points
 
-**Capability 1 — Understand Copilot's Role**
+### Capability 1 — Understand Copilot's Role
 - Copilot is a *context reader*. All four languages above produced better suggestions because the file already had matching patterns directly above the cursor. Moving the cursor to a blank line at the end of a file with no context would have produced a generic, unhelpful suggestion.
 - This means **code organisation matters for AI assistance** — consistent, pattern-rich files produce better suggestions than sprawling, inconsistent ones.
 
-**Capability 3 — Iterative Acceptance**
+### Capability 3 — Iterative Acceptance
 Never press `Accept All` (`Tab` to accept the whole block). Instead:
 ```
 Tab          — accept one token / word
@@ -260,7 +262,7 @@ In this demo, the critical rejected lines were:
 - Java: POJO class body → reject, add comment `// use Java record`
 - C#: nullable `int?` → reject if Azure OpenAI prompt cannot handle null
 
-**Capability 7 — Understand Limitations**
+### Capability 7 — Understand Limitations
 
 | Language | Where Copilot reliably fails | Why |
 |----------|------------------------------|-----|

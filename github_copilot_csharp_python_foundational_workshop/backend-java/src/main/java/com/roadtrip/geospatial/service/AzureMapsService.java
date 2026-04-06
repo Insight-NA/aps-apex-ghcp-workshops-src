@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
 
 import java.util.*;
 
@@ -57,23 +58,47 @@ public class AzureMapsService {
         final Double finalLat = lat;
         final Double finalLon = lon;
 
-        Map<String, Object> data = webClient.get()
-                .uri(uriBuilder -> {
-                    var builder = uriBuilder
-                            .path("/search/fuzzy/json")
-                            .queryParam("api-version", "1.0")
-                            .queryParam("query", query)
-                            .queryParam("limit", 10)
-                            .queryParam("subscription-key", azureMapsKey);
-                    if (finalLat != null && finalLon != null) {
-                        builder.queryParam("lat", finalLat);
-                        builder.queryParam("lon", finalLon);
-                    }
-                    return builder.build();
-                })
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+        log.debug("Searching Azure Maps for query='{}' proximity='{}'", query, proximity);
+
+        Map<String, Object> data;
+        try {
+            data = webClient.get()
+                    .uri(uriBuilder -> {
+                        var builder = uriBuilder
+                                .path("/search/fuzzy/json")
+                                .queryParam("api-version", "1.0")
+                                .queryParam("query", query)
+                                .queryParam("limit", 10)
+                                .queryParam("subscription-key", azureMapsKey);
+                        if (finalLat != null && finalLon != null) {
+                            builder.queryParam("lat", finalLat);
+                            builder.queryParam("lon", finalLon);
+                        }
+                        return builder.build();
+                    })
+                    .retrieve()
+                    .onStatus(status -> status.value() == 401,
+                            response -> Mono.error(
+                                    new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                                            "Azure Maps authentication failed: subscription key is invalid or expired")))
+                    .onStatus(status -> status.value() == 403,
+                            response -> Mono.error(
+                                    new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                                            "Azure Maps authorization failed: key does not have access to this resource")))
+                    .onStatus(status -> status.is4xxClientError(),
+                            response -> Mono.error(
+                                    new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                            "Azure Maps request error: " + response.statusCode())))
+                    .onStatus(status -> status.is5xxServerError(),
+                            response -> Mono.error(
+                                    new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                                            "Azure Maps service error: " + response.statusCode())))
+                    .bodyToMono(Map.class)
+                    .block();
+        } catch (ResponseStatusException e) {
+            log.error("Azure Maps search failed for query='{}': {}", query, e.getReason());
+            throw e;
+        }
 
         if (data == null) {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
@@ -110,6 +135,7 @@ public class AzureMapsService {
 
     private void validateKey() {
         if (azureMapsKey == null || azureMapsKey.isBlank()) {
+            log.error("AZURE_MAPS_KEY environment variable is not set or empty");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Azure Maps key not configured");
         }

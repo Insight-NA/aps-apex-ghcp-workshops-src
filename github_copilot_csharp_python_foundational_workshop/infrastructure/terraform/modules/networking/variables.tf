@@ -42,6 +42,18 @@ variable "subnet_private_endpoints" {
   type        = string
 }
 
+variable "subnet_container_apps" {
+  description = "CIDR for Container Apps subnet (requires /23 or larger)"
+  type        = string
+  default     = "10.0.4.0/23"
+}
+
+variable "enable_container_apps" {
+  description = "Enable Container Apps subnet"
+  type        = bool
+  default     = false
+}
+
 variable "enable_private_endpoints" {
   description = "Enable private endpoints and DNS zones"
   type        = bool

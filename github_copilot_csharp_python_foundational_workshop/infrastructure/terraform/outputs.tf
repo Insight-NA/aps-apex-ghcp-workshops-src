@@ -225,6 +225,55 @@ output "application_insights_instrumentation_key" {
 }
 
 # -----------------------------------------------------------------------------
+# Container Apps Outputs (Polyglot Microservices)
+# -----------------------------------------------------------------------------
+
+output "container_apps_environment_id" {
+  description = "Container Apps Environment ID"
+  value       = var.enable_container_apps ? module.container_apps[0].environment_id : null
+}
+
+output "container_apps_environment_name" {
+  description = "Container Apps Environment name"
+  value       = var.enable_container_apps ? module.container_apps[0].environment_name : null
+}
+
+output "bff_url" {
+  description = "BFF Container App URL (public-facing API gateway)"
+  value       = var.enable_container_apps ? module.container_apps[0].bff_url : null
+}
+
+output "bff_fqdn" {
+  description = "BFF Container App FQDN"
+  value       = var.enable_container_apps ? module.container_apps[0].bff_fqdn : null
+}
+
+output "csharp_backend_url" {
+  description = "C# Backend Container App URL (internal)"
+  value       = var.enable_container_apps ? module.container_apps[0].csharp_backend_url : null
+}
+
+output "csharp_backend_fqdn" {
+  description = "C# Backend Container App FQDN"
+  value       = var.enable_container_apps ? module.container_apps[0].csharp_backend_fqdn : null
+}
+
+output "java_backend_url" {
+  description = "Java Backend Container App URL (internal)"
+  value       = var.enable_container_apps ? module.container_apps[0].java_backend_url : null
+}
+
+output "java_backend_fqdn" {
+  description = "Java Backend Container App FQDN"
+  value       = var.enable_container_apps ? module.container_apps[0].java_backend_fqdn : null
+}
+
+output "container_apps_principal_ids" {
+  description = "Map of Container App Managed Identity principal IDs"
+  value       = var.enable_container_apps ? module.container_apps[0].all_principal_ids : null
+}
+
+# -----------------------------------------------------------------------------
 # Feature Flags
 # -----------------------------------------------------------------------------
 
@@ -235,6 +284,7 @@ output "features" {
     vnet_integration_enabled  = local.should_enable_vnet_integration
     monitoring_enabled        = local.should_enable_monitoring
     key_vault_enabled         = local.should_enable_key_vault
+    container_apps_enabled    = var.enable_container_apps
   }
 }
 
@@ -268,6 +318,8 @@ output "deployment_summary" {
     app_service_sku    = var.app_service_sku
     database_sku       = var.database_sku
     static_web_app_sku = var.static_web_app_sku
+    container_apps     = var.enable_container_apps
+    bff_url            = var.enable_container_apps ? module.container_apps[0].bff_url : null
     deployed_at        = timestamp()
   }
 }

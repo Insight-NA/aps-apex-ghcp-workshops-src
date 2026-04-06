@@ -1,9 +1,9 @@
 # Road Trip Planner - Development Roadmap
 
-**Last Updated**: February 25, 2026  
-**Status**: Polyglot microservices rearchitecture in progress  
-**Total Effort**: 135-186 hours across 8 phases  
-**Architecture**: Node.js BFF → Python + C# + Java backends (Docker-first)
+**Last Updated**: March 4, 2026  
+**Status**: Architecture pivot — BFF consolidation + Azure Container Apps  
+**Total Effort**: 178-247 hours across 9 phases (includes C# remediation + BFF consolidation)  
+**Architecture**: Unified Node.js BFF (serves React SPA + API gateway) → Python + C# + Java backends → Azure Container Apps
 
 ---
 
@@ -14,6 +14,10 @@ This roadmap reorganizes the project around a **polyglot microservices architect
 > **For AI Agents**: This is the **single source of truth** for project planning. Do NOT create duplicate issues. Always reference this roadmap before proposing new tasks.
 
 ### ✅ Recent Completions
+- **Terraform Roadmap** (Mar 4, 2026): Created detailed IaC roadmap with 40 tasks — ACR module, AI Services module, Container Apps updates, gap analysis ([TERRAFORM_ROADMAP.md](./TERRAFORM_ROADMAP.md))
+- **Architecture Pivot** (Mar 4, 2026): Decision to consolidate frontend into BFF, eliminate nginx, deploy all services as Azure Container Apps
+- **Frontend Security Review** (Mar 4, 2026): Comprehensive React code audit — 4 P0 security issues, 16+ architecture violations, 0 constants files, conflicting type definitions identified
+- **Phase 3 Roadmap** (Mar 2, 2026): C# backend architecture review completed — 25-task remediation roadmap created ([CSHARP_BACKEND_ROADMAP.md](./CSHARP_BACKEND_ROADMAP.md))
 - **Issue #4** (Jan 21, 2026): Backend API mocking - 10 JSON fixtures, 10 new tests, CI hardened
 - **Issue #1** (Dec 6, 2025): Frontend Testing Infrastructure
 - **Issue #21** (Dec 6, 2025): BFF Architecture Research
@@ -42,12 +46,13 @@ This roadmap reorganizes the project around a **polyglot microservices architect
 | [Phase 0: Cleanup](#phase-0-cleanup) | 1-2 hrs | Remove Go ai-service | Critical | ✅ **DONE** |
 | [Phase 1: Docker-First Setup](#phase-1-docker-first-local-development) | 4-6 hrs | Docker Compose with all services | Critical | ✅ **DONE** |
 | [Phase 2: Node.js BFF](#phase-2-nodejs-bff-service) | 8-12 hrs | API gateway routing layer | Critical | 🟡 Build Verified |
-| [Phase 3: C# AI Service](#phase-3-c-aspnet-web-api--ai-service) | 12-16 hrs | Vehicle parsing + trip generation | High | 🟡 Build Verified |
+| [Phase 3: C# AI Service](#phase-3-c-aspnet-web-api--ai-service) | 31-45 hrs | Vehicle parsing + trip generation + SOLID remediation | High | 🟡 Roadmap Created |
 | [Phase 4: Java Geospatial](#phase-4-java-spring-boot--geospatial-services) | 16-20 hrs | Geocode, directions, search, optimize | High | 🟡 Build Verified |
-| [Phase 5: Frontend Integration](#phase-5-frontend-bff-integration) | 6-8 hrs | Wire frontend to BFF, standardize API calls | High | 🔴 Not started |
-| [Phase 6: Code Quality](#phase-6-code-quality--testing) | 10-14 hrs | TypeScript fixes, token cleanup, tests | Medium | 🔴 Not started |
+| [Phase 5: Frontend Standardization](#phase-5-frontend-standardization--security) | 14-18 hrs | Security fixes, axios migration, constants, types | Critical | 🔴 Not started |
+| [Phase 5B: BFF Consolidation](#phase-5b-bff-frontend-consolidation) | 8-12 hrs | BFF serves React SPA, unified Dockerfile, eliminate nginx | High | 🔴 Not started |
+| [Phase 6: Code Quality](#phase-6-code-quality--testing) | 12-16 hrs | Component decomposition, error boundaries, testing | Medium | 🔴 Not started |
 | [Phase 7: Features](#phase-7-feature-enhancement) | 20-30 hrs | Vehicle routing, AI trips, accessibility | Medium | 🔴 Not started |
-| [Phase 8: Infrastructure](#phase-8-infrastructure--deployment) | 58-78 hrs | Terraform, CI/CD, Azure deployment | Low | 🔴 Not started |
+| [Phase 8: Azure Container Apps](#phase-8-azure-container-apps--deployment) | 58-78 hrs | Container Apps Terraform, ACR, CI/CD pipelines ([detailed roadmap](./TERRAFORM_ROADMAP.md)) | High | 🟡 Planning Complete |
 
 ---
 
@@ -87,7 +92,7 @@ Full Docker Compose stack with all services, PostgreSQL database, and service ne
 | `backend-python` | 8000 | Python/FastAPI | Trips CRUD, Auth, Vehicle fallback |
 | `backend-csharp` | 8081 | C#/ASP.NET 8 | AI vehicle parsing, trip generation |
 | `backend-java` | 8082 | Java/Spring Boot 3 | Geocode, directions, search, optimize |
-| `frontend` | 5173 | React/Vite → Nginx | SPA served via Nginx |
+| `frontend` | 5173 | React/Vite → Nginx | SPA served via Nginx (**→ to be eliminated in Phase 5B**: BFF will serve SPA) |
 
 ### Verification
 ```bash
@@ -201,11 +206,34 @@ backend-csharp/
 - [x] Run `dotnet restore` and verify build ✅ (Feb 25, 2026 — `dotnet build` succeeded)
 - [ ] Test with Azure OpenAI credentials (set env vars)
 - [x] Test fallback mode (no Azure OpenAI configured) ✅ (Feb 25, 2026 — truck, RV, car, trip gen all work)
-- [ ] Add input validation (description length limits)
-- [ ] Add structured logging (ILogger)
-- [ ] Create xUnit test project with mocked Azure OpenAI client
 - [x] Verify Docker multi-stage build succeeds ✅ (Feb 25, 2026)
 - [x] Integration test: BFF → C# service → response ✅ (Feb 25, 2026 — truck, RV, sedan, trip gen all pass through BFF)
+- [x] Architecture review & remediation roadmap ✅ (Mar 2, 2026 — see below)
+
+### C# Backend Remediation Roadmap (19-29 hours)
+
+> **Full Details**: [CSHARP_BACKEND_ROADMAP.md](./CSHARP_BACKEND_ROADMAP.md) — 25 detailed TDD tasks across 8 epics
+
+**Architecture Review Findings** (Mar 2, 2026):
+- 5 SOLID violations (SRP×2, OCP×2, ISP×1, DIP×2)
+- 6 security gaps (prompt injection, no auth, no rate limit, no input limits, raw AI exposure, generic catches)
+- 0 tests (Tests/ directory empty)
+- 12+ hardcoded strings violating project coding standards
+- No global error handling middleware
+- No `.dockerignore`, no non-root user in container
+
+| Epic | Tasks | Effort | Focus |
+|------|-------|--------|-------|
+| 1. Test Infrastructure | 1.1, 1.2 | 1-2 hrs | xUnit project, test helpers, mocks, fixtures |
+| 2. Constants & Strings | 2.1, 2.2 | 2-3 hrs | Externalize all magic strings and numbers |
+| 3. DIP & ISP Fix | 3.1, 3.2, 3.3 | 4-6 hrs | Options pattern, client factory, split interfaces |
+| 4. SRP Fix | 4.1, 4.2 | 3-4 hrs | Split controller and service by domain |
+| 5. Security & Validation | 5.1-5.6 | 4-6 hrs | Error middleware, validation, sanitization, CancellationToken |
+| 6. Resilience | 6.1, 6.2, 6.3 | 3-4 hrs | Polly retry, health enrichment, camelCase JSON |
+| 7. Docker Hardening | 7.1, 7.2, 7.3 | 1-2 hrs | .dockerignore, non-root user, compose healthcheck |
+| 8. Swagger/Docs | 8.1 | 1-2 hrs | XML docs, ProducesResponseType, OpenAPI spec |
+
+**TDD Mandate**: Every task follows Red → Green → Refactor. Target ≥ 80% code coverage.
 
 ### Environment Variables
 | Variable | Required | Description |
@@ -289,137 +317,431 @@ This will reduce `main.py` from ~448 lines to ~280 lines.
 
 ---
 
-## Phase 5: Frontend BFF Integration
+## Phase 5: Frontend Standardization & Security
 
-**Effort**: 6-8 hours | **Status**: 🔴 Not started
+**Effort**: 14-18 hours | **Status**: 🔴 Not started  
+**Triggered by**: Frontend security & best practices review (Mar 4, 2026)  
+**Prerequisite for**: Phase 5B (BFF Consolidation), Phase 6 (Code Quality)
 
-Wire the React frontend to use the BFF as its single API endpoint. Standardize HTTP client usage.
+Addresses all P0/P1 findings from the comprehensive React code review: security vulnerabilities, architecture violations (raw axios bypassing BFF), empty constants directory, conflicting type definitions, and dead code.
 
-### Changes Required
+### 5.1 — P0 Security: Rotate Mapbox Token & Fix .gitignore ⚠️ CRITICAL
+- **Effort**: 1 hour | **Status**: 🔴 Not started
+- **Finding**: Real Mapbox token `pk.eyJ1IjoiaGx1Y2lhbm9qciIs...` committed in `frontend/.env` — file is NOT in `.gitignore` (only `*.local` is ignored)
+- **Files**: `frontend/.env`, `frontend/.gitignore`
+- **Tasks**:
+  - [ ] Add `.env` to `frontend/.gitignore`
+  - [ ] Rotate the Mapbox token in the Mapbox dashboard (old token is compromised)
+  - [ ] Scrub git history with BFG Repo-Cleaner or `git filter-repo`
+  - [ ] Verify `frontend/.env.example` has placeholder values only
+  - [ ] Verify `docker-compose.yml` uses `${VITE_MAPBOX_TOKEN}` (not hardcoded)
 
-#### 1. VITE_API_URL Change (already done in docker-compose)
-Frontend now points to `http://localhost:3000` (BFF) instead of `http://localhost:8000` (Python).
-No code changes needed — all `import.meta.env.VITE_API_URL` references automatically resolve.
+### 5.2 — P0 Security: Remove devLogin Production Exposure
+- **Effort**: 0.5 hours | **Status**: 🔴 Not started
+- **Finding**: `devLogin` function at `FloatingPanel.tsx:~155` sends `"MOCK_TOKEN"` — visible in production builds
+- **Files**: `frontend/src/components/FloatingPanel.tsx`
+- **Tasks**:
+  - [ ] Gate `devLogin` behind `import.meta.env.DEV` check, or remove entirely
+  - [ ] Verify mock token code is tree-shaken from production builds
 
-#### 2. Standardize HTTP Client (Issue from research)
-Currently two patterns coexist — some files use `axiosInstance` (with auth interceptors), others use raw `axios`:
+### 5.3 — P0 Architecture: Migrate All Raw axios to axiosInstance
+- **Effort**: 3-4 hours | **Status**: 🔴 Not started
+- **Finding**: 16+ raw `axios.get/post` calls bypass the `axiosInstance` auth interceptors. Manual `Authorization: Bearer ${token}` headers duplicated across files
+- **Files affected** (raw `axios` usage):
+  - `frontend/src/components/FloatingPanel.tsx` — ~10 calls (imports `axios` AND `axiosInstance`, only uses raw `axios`)
+  - `frontend/src/views/ExploreView.tsx` — 3 calls
+  - `frontend/src/views/TripsView.tsx` — 2 calls with manual auth headers
+  - `frontend/src/views/AllTripsView.tsx` — 1 call
+- **Tasks**:
+  - [ ] Replace all `axios.get/post` with `axiosInstance.get/post` in FloatingPanel.tsx
+  - [ ] Replace all `axios.get/post` with `axiosInstance.get/post` in ExploreView.tsx
+  - [ ] Replace all `axios.get/post` with `axiosInstance.get/post` in TripsView.tsx
+  - [ ] Replace all `axios.get/post` with `axiosInstance.get/post` in AllTripsView.tsx
+  - [ ] Remove all manual `Authorization: Bearer ${token}` header construction
+  - [ ] Remove raw `import axios from 'axios'` from all component/view files
+  - [ ] Verify auth interceptor in `utils/axios.ts` handles all token injection
+  - [ ] Test: Login → save trip → load trips → all work through axiosInstance
 
-**Files using raw `axios` (need migration to `axiosInstance`):**
-- `frontend/src/components/FloatingPanel.tsx` — 10 raw axios calls
-- `frontend/src/views/TripsView.tsx` — 2 raw axios calls
-- `frontend/src/views/AllTripsView.tsx` — 1 raw axios call
-- `frontend/src/views/ExploreView.tsx` — 3 raw axios calls
+### 5.4 — P1 Architecture: Fix Vite Proxy & VITE_API_URL to Point to BFF
+- **Effort**: 0.5 hours | **Status**: 🔴 Not started
+- **Finding**: Both `vite.config.ts` proxy target and `.env` point to Python backend (:8000) instead of BFF (:3000)
+- **Files**: `frontend/vite.config.ts` (line 12), `frontend/.env` (line 2)
+- **Tasks**:
+  - [ ] Change `vite.config.ts` proxy target from `http://127.0.0.1:8000` to `http://127.0.0.1:3000`
+  - [ ] Change `VITE_API_URL` from `http://localhost:8000` to `http://localhost:3000`
+  - [ ] Verify all API calls route through BFF in local non-Docker dev
 
-#### 3. Create Constants Files (per coding standards)
-- [ ] `frontend/src/constants/api.ts` — endpoint paths
-- [ ] `frontend/src/constants/errors.ts` — error messages
-- [ ] `frontend/src/constants/routes.ts` — route paths
+### 5.5 — P1 Standards: Create All Required Constants Files
+- **Effort**: 4-5 hours | **Status**: 🔴 Not started
+- **Finding**: `frontend/src/constants/` directory exists but is **completely empty**. Project standards mandate 4 files. Hardcoded strings found across 15+ files
+- **Tasks**:
+  - [ ] Create `frontend/src/constants/routes.ts`:
+    - Route paths: `EXPLORE`, `ITINERARY`, `TRIPS`, `START`, `ALL_TRIPS`
+    - Replace hardcoded paths in: App.tsx, DesktopSidebar.tsx, MobileBottomNav.tsx, StartTripView.tsx
+  - [ ] Create `frontend/src/constants/api.ts`:
+    - Endpoint paths: `GEOCODE`, `DIRECTIONS`, `SEARCH`, `VEHICLE_SPECS`, `TRIPS`, `OPTIMIZE`, `AUTH_GOOGLE`, `AUTH_REFRESH`
+    - Replace hardcoded paths in: FloatingPanel.tsx, TripsView.tsx, AllTripsView.tsx, ExploreView.tsx, axios.ts
+  - [ ] Create `frontend/src/constants/errors.ts`:
+    - Error messages: `AUTH_REQUIRED`, `SESSION_EXPIRED`, `TRIP_NOT_FOUND`, `ROUTE_CALC_FAILED`, `ENTER_TRIP_NAME`
+    - Replace hardcoded messages in: useTripStore.ts, FloatingPanel.tsx, AuthStatus.tsx
+  - [ ] Create `frontend/src/constants/index.ts`:
+    - `STORAGE_KEYS`: `TOKEN`, `REFRESH_TOKEN`, `USER_EMAIL` (replace 10+ `localStorage.getItem('token')` calls)
+    - `AUTH_EVENTS`: `SESSION_EXPIRED`, `LOGIN` (replace event name strings)
+    - `MAP_DEFAULTS`: `CENTER_US`, `DEFAULT_ZOOM`, `MAP_STYLE` (replace magic numbers in MapComponent.tsx)
+    - `VEHICLE_DEFAULTS`: `FUEL_TYPE`, `RANGE`, `MPG`, `FUEL_PRICE` (replace magic numbers in useTripStore.ts, FloatingPanel.tsx)
+    - `SEARCH_DEFAULTS`: `MAX_POINTS`, `KM_STEP`, `METERS_TO_MILES` (replace magic numbers in FloatingPanel.tsx)
+    - `POI_CATEGORIES`: `GAS_STATION`, `RESTAURANT`, `HOTEL` (replace category strings)
+    - `STOP_TYPES`: `START`, `END`, `WAYPOINT` (replace type string comparisons)
 
-### Acceptance Criteria
-- [ ] All frontend API calls use `axiosInstance` from `utils/axios.ts`
-- [ ] No raw `axios.get/post` calls remain in component files
-- [ ] Constants files created per copilot-instructions.md standards
-- [ ] Frontend loads at `http://localhost:5173` with all features working through BFF
-- [ ] Auth flow works: login → token stored → subsequent calls authenticated
+### 5.6 — P1 TypeScript: Consolidate Conflicting Type Definitions
+- **Effort**: 3-4 hours | **Status**: 🔴 Not started
+- **Finding**: Types defined in BOTH `src/types/index.ts` (218 lines) AND individual files. Definitions **conflict**:
+  - `Vehicle.ts` has `type`/`hazmat`/`height` — `index.ts` has `fuelType`/`range`/`mpg`
+  - `Trip.ts` missing `user_id`/`is_public`/`created_at` — `index.ts` has them
+  - `Stop.ts` missing `order` field — `index.ts` has it
+  - `POI.ts` has `category: string` — `index.ts` has `POICategory` union type
+  - `Route.ts` `Leg` has `steps: Step[]` — `index.ts` `RouteLeg` has `geometry: GeoJSON.LineString`
+  - Store default `vehicleSpecs` doesn't match either Vehicle type definition
+- **Tasks**:
+  - [ ] Audit all import paths to determine which type definitions are actually used where
+  - [ ] Consolidate into single source of truth in `src/types/index.ts`
+  - [ ] Delete individual files (`Vehicle.ts`, `Trip.ts`, `Stop.ts`, `POI.ts`, `Route.ts`) or make them re-export from `index.ts`
+  - [ ] Reconcile all field differences — ensure types match backend API responses
+  - [ ] Fix `useTripStore.ts` default `vehicleSpecs` to match the consolidated `Vehicle` type
+  - [ ] Fix `routeGeoJSON.coordinates` (should be `routeGeoJSON.geometry.coordinates` for GeoJSON Feature)
+  - [ ] Update all component imports to use the consolidated types
+  - [ ] Verify: `npm run build` passes with zero type errors
+
+### 5.7 — P2 Cleanup: Remove Dead Code
+- **Effort**: 0.5 hours | **Status**: 🔴 Not started
+- **Finding**: `App.css` is entirely Vite template boilerplate (`.logo`, `.read-the-docs`), unused. `React` imported but unused in multiple files
+- **Tasks**:
+  - [ ] Delete `frontend/src/App.css` and remove its import from `App.tsx`
+  - [ ] Remove unused `import React` from `App.tsx` and `MainLayout.tsx`
+  - [ ] Remove unused `axiosInstance` import from `FloatingPanel.tsx` (it imports both `axios` AND `axiosInstance` — after 5.3, raw `axios` import goes away instead)
+
+### Phase 5 Acceptance Criteria
+- [ ] Zero raw `axios` imports in component/view files — all use `axiosInstance`
+- [ ] All 4 constants files created and populated
+- [ ] Zero hardcoded route paths, API endpoints, error messages, or localStorage keys in components
+- [ ] Single set of TypeScript type definitions — no conflicting duplicates
+- [ ] `.env` with real token removed from git history
+- [ ] `devLogin` not callable in production builds
+- [ ] Vite proxy and `VITE_API_URL` both point to BFF (:3000)
+- [ ] `npm run build` passes with zero errors
+- [ ] All existing functionality preserved (manual smoke test)
+
+---
+
+## Phase 5B: BFF Frontend Consolidation
+
+**Effort**: 8-12 hours | **Status**: 🔴 Not started  
+**Architecture Decision**: Mar 4, 2026 — Eliminate nginx, serve React SPA from BFF, deploy as Azure Container Apps  
+**Prerequisite for**: Phase 8 (Azure Container Apps)  
+**Dependencies**: Phase 5 (frontend must be standardized first)
+
+The BFF becomes the single entry point — serving the built React SPA as static files AND proxying all API calls. This eliminates the separate nginx/frontend container, removes CORS complexity (same-origin), and simplifies deployment to a single container per service.
+
+### 5B.1 — Add Static File Serving to BFF
+- **Effort**: 2-3 hours | **Status**: 🔴 Not started
+- **Files**: `bff/src/index.ts`, `bff/package.json`
+- **Tasks**:
+  - [ ] Install `compression` npm package (`npm i compression @types/compression`)
+  - [ ] Add `compression()` middleware before all routes in `bff/src/index.ts`
+  - [ ] Add `express.static('public', { maxAge: '1y', immutable: true })` middleware **before** proxy routes
+  - [ ] Add custom middleware for `index.html` to set `Cache-Control: no-cache` (HTML must not be cached)
+  - [ ] Add SPA catch-all route **after** all proxy routes: `app.get('*', (req, res) => res.sendFile('index.html'))`
+  - [ ] Ensure catch-all does NOT intercept `/api/*` or `/health` routes
+  - [ ] Test locally: copy a built React `dist/` into `bff/public/`, verify SPA loads at `http://localhost:3000`
+
+### 5B.2 — Create Unified Dockerfile
+- **Effort**: 2-3 hours | **Status**: 🔴 Not started
+- **Files**: New `bff/Dockerfile.unified` (or update `bff/Dockerfile`)
+- **Tasks**:
+  - [ ] Stage 1 — Build React frontend: `node` image, `cd frontend && npm ci && npm run build`
+  - [ ] Stage 2 — Build BFF TypeScript: `node` image, `cd bff && npm ci && npm run build`
+  - [ ] Stage 3 — Production: `node:slim` image, copy BFF dist + React dist into `public/`, expose single port
+  - [ ] Set `VITE_API_URL=""` in Stage 1 build args (relative paths, same-origin)
+  - [ ] Add `.dockerignore` for the unified build context
+  - [ ] Test: `docker build -f bff/Dockerfile.unified -t roadtrip-bff:test .` → verify image contains both BFF and React
+  - [ ] Test: `docker run -p 3000:3000 roadtrip-bff:test` → verify SPA loads + API proxy works
+
+### 5B.3 — Simplify CORS & Update Docker Compose
+- **Effort**: 1-2 hours | **Status**: 🔴 Not started
+- **Files**: `bff/src/index.ts`, `docker-compose.yml`
+- **Tasks**:
+  - [ ] Simplify `cors()` config in BFF — frontend is same-origin, no CORS needed for frontend→BFF path
+  - [ ] Keep CORS only for any third-party API consumers (if needed)
+  - [ ] Update `docker-compose.yml`: remove `frontend` service (or make it dev-only)
+  - [ ] BFF service becomes the single externally-exposed container on port 3000
+  - [ ] Keep `docker-compose.dev.yml` unchanged — Vite dev server on :5173 for hot reload during development
+
+### 5B.4 — Remove Nginx Artifacts
+- **Effort**: 1 hour | **Status**: 🔴 Not started
+- **Files**: `frontend/nginx.conf`, `frontend/Dockerfile`, `frontend/staticwebapp.config.json`
+- **Tasks**:
+  - [ ] Delete `frontend/nginx.conf` (no longer needed)
+  - [ ] Delete `frontend/staticwebapp.config.json` (Azure Static Web Apps no longer used)
+  - [ ] Update `frontend/Dockerfile` to be build-only (no nginx stage) — or remove if unified Dockerfile handles everything
+  - [ ] Keep `frontend/Dockerfile.dev` for local development with Vite
+
+### Phase 5B Acceptance Criteria
+- [ ] `docker-compose up --build` starts BFF on :3000 serving React app at root `/`
+- [ ] Navigate to `http://localhost:3000` → React SPA loads correctly
+- [ ] Navigate to `http://localhost:3000/explore` → SPA routing works (no 404)
+- [ ] `http://localhost:3000/api/health` → returns aggregated health from all backends
+- [ ] Static assets (JS/CSS) have `Cache-Control: public, immutable` headers
+- [ ] `index.html` has `Cache-Control: no-cache` header
+- [ ] No nginx process or container running
+- [ ] `docker-compose.dev.yml` still works with Vite dev server on :5173
 
 ---
 
 ## Phase 6: Code Quality & Testing
 
-**Effort**: 10-14 hours | **Status**: 🔴 Not started
+**Effort**: 12-16 hours | **Status**: 🔴 Not started
 
-Carry-forward issues from the original roadmap focused on code quality.
+Carry-forward issues from the original roadmap + new findings from the Mar 4 frontend review.
 
 ### Issue #2: Fix TypeScript `any` Violations
-- **Estimate**: 8-10 hours
-- **Problem**: 20 instances of `any` type across frontend components
+- **Labels**: `priority:critical`, `type:refactor`
+- **Estimate**: 8-10 hours | **Status**: 🔴 Not started
+- **Problem**: `any` types found across frontend. Violates: "No `any` types allowed"
+- **Key Violations** (Mar 4, 2026 review):
+  - `useTripStore.ts` lines 120, 166, 197: `catch (error: any)` — 3 occurrences
+  - `utils/axios.ts` lines 13-14: `resolve: (value?: any)`, `reject: (reason?: any)`
+  - `MainLayout.tsx` line 10: implicit `any` from untyped store selector
 - **Acceptance Criteria**:
-  - [ ] Create `frontend/src/types/` directory with proper interfaces
-  - [ ] Replace all 20 `any` types with typed interfaces
+  - [ ] Replace `catch (error: any)` with `catch (error: unknown)` + type guards (or `AxiosError`)
+  - [ ] Replace `any` in axios queue types with proper `AxiosResponse` types
+  - [ ] Fix implicit `any` in `MainLayout.tsx` store selector
   - [ ] Enable `"strict": true` in tsconfig.json
-  - [ ] Zero TypeScript errors in build
+  - [ ] Fix all resulting type errors — zero errors in build output
+- **Dependencies**: Phase 5.6 (type consolidation must be done first)
 
 ### Issue #3: Remove Hardcoded API Tokens ⚠️ SECURITY
-- **Estimate**: 2 hours
-- **Problem**: Tokens still potentially hardcoded in config files
+- **Labels**: `priority:critical`, `type:security`
+- **Estimate**: 2 hours | **Status**: 🔴 Not started (expanded scope from Mar 4 review)
+- **Evidence** (Mar 4, 2026 review):
+  - `frontend/.env`: Real Mapbox token committed (P0 — Phase 5.1)
+  - `docker-compose.yml`: Hardcoded VITE_MAPBOX_TOKEN
+  - `FloatingPanel.tsx:~155`: `devLogin` sends `"MOCK_TOKEN"` (P0 — Phase 5.2)
+  - `utils/axios.ts`: Tokens in `localStorage` — vulnerable to XSS
+  - `AuthStatus.tsx`: "Secure" badge shown without token validation
 - **Acceptance Criteria**:
-  - [ ] Audit all services for hardcoded secrets
-  - [ ] All tokens read from environment variables only
-  - [ ] `.env.example` files document all required vars
+  - [ ] Remove hardcoded token from docker-compose.yml → use `${VITE_MAPBOX_TOKEN}`
+  - [ ] Create `.env.example` files with placeholders for frontend/ and backend/
+  - [ ] Audit all services for remaining hardcoded secrets
+  - [ ] Verify `.env` files gitignored in all service directories
 
 ### Issue #5: Store Route GeoJSON in Database
-- **Estimate**: 3-4 hours
-- **Problem**: Saved trips lose route geometry on reload
+- **Estimate**: 3-4 hours | **Status**: 🔴 Not started
+- **Problem**: Saved trips lose route geometry on reload. Also `routeGeoJSON.coordinates` should be `routeGeoJSON.geometry.coordinates` (GeoJSON Feature)
 - **Acceptance Criteria**:
-  - [ ] Add `route_geojson` column to Trip model
+  - [ ] Add `route_geojson` column to Trip model (JSON type)
   - [ ] Create Alembic migration
+  - [ ] Fix `routeGeoJSON.coordinates` → `routeGeoJSON.geometry.coordinates` in all files
   - [ ] Frontend saves/restores route with trip
 
 ### Issue #20: Extract Duplicate Code
-- **Estimate**: 6-8 hours
-- **Problem**: Default image logic, token retrieval duplicated across components
+- **Estimate**: 6-8 hours | **Status**: 🔴 Not started
+- **Key duplications** (Mar 4 review):
+  - `getDefaultImage()` with Unsplash URLs duplicated in `AllTripsView.tsx` and `ExploreView.tsx`
+  - `localStorage.getItem('token')` repeated 10+ times across files
+  - Manual auth headers duplicated in `TripsView.tsx`, `FloatingPanel.tsx`
 - **Acceptance Criteria**:
-  - [ ] Create shared utility functions
-  - [ ] Replace all duplicated code
-  - [ ] Write unit tests for utilities
+  - [ ] Create `frontend/src/utils/images.ts` with `getDefaultTripImage()`
+  - [ ] Create `frontend/src/hooks/useAuth.ts` with centralized token retrieval
+  - [ ] Replace all duplicated instances
+  - [ ] Write unit tests for new utilities
+
+### NEW Issue #29: Decompose FloatingPanel.tsx (880 lines)
+- **Labels**: `priority:medium`, `type:refactor`
+- **Estimate**: 4-6 hours | **Status**: 🔴 Not started
+- **Finding**: 880-line component handling 8+ responsibilities (search, stops, vehicle config, route calc, POIs, save/load, directions, drag-and-drop, Google OAuth)
+- **Tasks**:
+  - [ ] Extract `StopSearchForm` component — search input + geocoding
+  - [ ] Extract `VehicleConfigPanel` — vehicle specs form
+  - [ ] Extract `DirectionsPanel` — turn-by-turn directions
+  - [ ] Extract `TripSaveLoadPanel` — save/load trip
+  - [ ] Extract `POICategoryButtons` — gas/restaurant/hotel search
+  - [ ] Keep `FloatingPanel` as thin orchestrator (~200 lines max)
+
+### NEW Issue #30: Add Error Boundaries
+- **Labels**: `priority:medium`, `type:reliability`
+- **Estimate**: 2-3 hours | **Status**: 🔴 Not started
+- **Finding**: No `<ErrorBoundary>` anywhere — any render error crashes entire UI
+- **Tasks**:
+  - [ ] Install `react-error-boundary`
+  - [ ] Add top-level `<ErrorBoundary>` in `App.tsx`
+  - [ ] Add route-level boundaries per view
+  - [ ] Create user-friendly fallback UI component
+  - [ ] Add error logging to `onError` callback
+
+### NEW Issue #31: Fix Broken Tests & Expand Coverage
+- **Labels**: `priority:medium`, `type:testing`
+- **Estimate**: 4-6 hours | **Status**: 🔴 Not started
+- **Finding**: 5 tests exist but are broken — mock raw `axios` not `axiosInstance`, use `jest.Mock` in Vitest, wrong env var in setup
+- **Tasks**:
+  - [ ] Fix `useTripStore.test.ts` to mock `axiosInstance`
+  - [ ] Replace `jest.Mock` with `vi.fn()` typing
+  - [ ] Fix env var: `VITE_API_BASE_URL` → `VITE_API_URL` in `test/setup.ts`
+  - [ ] Add component tests for `AuthStatus`, `MapComponent`
+  - [ ] Add view tests for `ExploreView`, `TripsView`
+  - [ ] Add hook test for `useOnlineStatus`
 
 ---
 
 ## Phase 7: Feature Enhancement
 
-**Effort**: 20-30 hours | **Status**: 🔴 Not started
+**Effort**: 24-36 hours | **Status**: 🔴 Not started
 
-Feature development leveraging the new polyglot architecture.
+Feature development leveraging the new polyglot architecture + React quality improvements from Mar 4 review.
 
 ### Issue #6: Vehicle-Aware Routing
-- **Estimate**: 6-8 hours
+- **Estimate**: 6-8 hours | **Status**: 🔴 Not started
 - **Flow**: Frontend → BFF → Java (directions with truck profile) + C# (vehicle specs)
 - **Dependencies**: Phase 4 (Java geospatial service)
 
 ### Issue #10: JWT Refresh Token Flow
-- **Estimate**: 6-8 hours
+- **Estimate**: 6-8 hours | **Status**: 🔴 Not started
 - **Flow**: Frontend → BFF → Python (auth service)
-- **Acceptance Criteria**: Auto-refresh, token rotation, secure cookie storage
+- **Acceptance Criteria**: Auto-refresh, token rotation, secure cookie storage (migrate from localStorage)
+- **Security note** (Mar 4 review): Current `localStorage` token storage is XSS-vulnerable. This issue should migrate to HTTP-only cookies
 
 ### Issue #14: AI Trip Generation
-- **Estimate**: 12-16 hours
+- **Estimate**: 12-16 hours | **Status**: 🔴 Not started
 - **Flow**: Frontend → BFF → C# (Azure OpenAI trip generation)
-- **Note**: Originally planned for Gemini, now uses Azure OpenAI via C# service
+- **Note**: Originally planned for Gemini, now uses Azure OpenAI via C# service. `FloatingPanel.tsx:610` still has stale "Gemini API Key" comment
 - **Dependencies**: Phase 3 (C# AI service)
 
 ### Issue #7: WCAG AA Accessibility
-- **Estimate**: 10-12 hours
+- **Estimate**: 10-12 hours | **Status**: 🔴 Not started
 - **Scope**: Frontend-only, no backend changes needed
+- **Specific findings** (Mar 4 review):
+  - Zero `aria-label` attributes on any navigation (`DesktopSidebar.tsx:22`, `MobileBottomNav.tsx:14`)
+  - No `aria-label` on form inputs, map markers, or interactive buttons in `FloatingPanel.tsx`
+  - `VersionDisplay.tsx` tooltip uses mouse events only — not keyboard accessible
+  - POI markers in `MapComponent.tsx:97-110` have no screen-reader labels
+  - No skip-to-content navigation link
+  - No focus indicators for keyboard navigation
+  - No `alt` text fallback for broken images in `AllTripsView.tsx:94`
 
 ### Issue #9: Interactive API Documentation
-- **Estimate**: 6-8 hours
+- **Estimate**: 6-8 hours | **Status**: 🔴 Not started
 - **Scope**: OpenAPI/Swagger for all 4 services (BFF, Python, C#, Java)
+
+### NEW Issue #32: Fix useEffect Cleanup & Race Conditions
+- **Labels**: `priority:medium`, `type:bug`
+- **Estimate**: 2-3 hours | **Status**: 🔴 Not started
+- **Finding** (Mar 4 review): Multiple async `useEffect` calls without `AbortController` cleanup and timers not cleaned on unmount
+- **Specific locations**:
+  - `ExploreView.tsx:60-62` — `fetchFeaturedTrips` in `useEffect` with no abort cleanup (race condition on fast navigation)
+  - `TripsView.tsx:34` — `fetchTrips` same issue
+  - `useOnlineStatus.ts:42` — `setTimeout` not cleaned on unmount (memory leak)
+  - `useOnlineStatus.ts:70` — `isOnline` in dependency array causes effect re-registration on every status change
+- **Tasks**:
+  - [ ] Add `AbortController` to all async `useEffect` calls with proper cleanup in return function
+  - [ ] Clean up `setTimeout` in `useOnlineStatus.ts` with `clearTimeout` in effect cleanup
+  - [ ] Fix `useOnlineStatus` dependency array to avoid stale closure issues
+  - [ ] Verify no race conditions when rapidly navigating between views
+
+### NEW Issue #33: Fix Caching & Performance
+- **Labels**: `priority:low`, `type:performance`
+- **Estimate**: 2-3 hours | **Status**: 🔴 Not started
+- **Finding** (Mar 4 review):
+  - `staticwebapp.config.json` sets `no-cache, no-store, must-revalidate` for ALL resources — hashed static assets should be cached aggressively
+  - `offlineStorage.ts` opens new IndexedDB connection on every operation — no connection reuse/caching
+  - `TripsView.tsx:81` reads `localStorage.getItem('token')` in render body (every render)
+- **Tasks**:
+  - [ ] Fix caching strategy: cache hashed assets aggressively, `no-cache` only for `index.html` (note: becomes moot after Phase 5B eliminates Static Web App)
+  - [ ] Add IndexedDB connection pooling/caching to `offlineStorage.ts`
+  - [ ] Move `localStorage.getItem('token')` out of render body into `useEffect` or callback
 
 ---
 
-## Phase 8: Infrastructure & Deployment
+## Phase 8: Azure Container Apps & Deployment
 
-**Effort**: 58-78 hours | **Status**: 🔴 Not started (deferred to last phase)
+**Effort**: 58-78 hours | **Status**: � Planning Complete  
+**Architecture Decision**: Mar 4, 2026 — All services deploy as Azure Container Apps (replaces App Service + Static Web App)  
+**Detailed Terraform Roadmap**: [TERRAFORM_ROADMAP.md](./TERRAFORM_ROADMAP.md)
 
-All Terraform/Azure IaC work. Now must account for 4+ services instead of 2.
+> **📋 For Terraform Tasks**: See [TERRAFORM_ROADMAP.md](./TERRAFORM_ROADMAP.md) for detailed implementation plan with 40 tasks across 5 phases, gap analysis, architecture diagrams, and code specifications.
 
-### Terraform Foundation (Issues #23-28)
-Original Milestone 0 issues carried forward but expanded for polyglot architecture:
-- **Issue #23**: Terraform Foundation & State Management (10-14 hrs)
-- **Issue #24**: Core Networking Module (12-16 hrs)
-- **Issue #25**: Compute & Database Modules — now needs App Service for Python, C#, Java + Container Apps for BFF (12-16 hrs)
-- **Issue #26**: Security & Monitoring Modules (10-14 hrs)
-- **Issue #27**: Environment Configurations — JSON tfvars (4-6 hrs)
-- **Issue #28**: CI/CD Pipeline Integration — separate build/deploy per language (10-12 hrs)
+Azure Container Apps for all 4 services (BFF+frontend, Python, C#, Java) with Azure Container Registry, shared Container Apps Environment, and optional Azure Front Door for CDN/WAF.
+
+### Key Changes Identified (Mar 4, 2026)
+| Gap | Resolution | See Task |
+|-----|------------|----------|
+| No ACR module | Create `modules/acr/` | [TERRAFORM_ROADMAP.md#task-11](./TERRAFORM_ROADMAP.md#task-11-create-acr-module-modulesacrmaintf) |
+| No Azure OpenAI/Maps | Create `modules/ai-services/` | [TERRAFORM_ROADMAP.md#task-14](./TERRAFORM_ROADMAP.md#task-14-create-ai-services-module-modulesai-servicesmaintf) |
+| Python on App Service | Move to Container Apps | [TERRAFORM_ROADMAP.md#task-21](./TERRAFORM_ROADMAP.md#task-21-add-python-backend-to-container-apps) |
+| DB NSG blocks Container Apps | Add NSG rule | [TERRAFORM_ROADMAP.md#task-25](./TERRAFORM_ROADMAP.md#task-25-update-networking-nsg-rules) |
+| Missing secrets | Add to Key Vault | [TERRAFORM_ROADMAP.md Phase 2](./TERRAFORM_ROADMAP.md#phase-2-update-existing-modules-high--10-14-hrs) |
+
+### Terraform Foundation (Issues #23-28) — Updated for Container Apps
+Original Milestone 0 issues carried forward, **now targeting Azure Container Apps** instead of App Service + Static Web App:
+- **Issue #23**: Terraform Foundation & State Management (10-14 hrs) | **Status**: 🟡 Planning complete
+- **Issue #24**: Core Networking Module (12-16 hrs) | **Status**: 🟡 Planning complete
+- **Issue #25**: Compute & Database Modules — **REVISED**: Container Apps Environment + ACR + 4 Container Apps instead of App Service + Static Web App (12-16 hrs) | **Status**: 🟡 Planning complete
+- **Issue #26**: Security & Monitoring Modules (10-14 hrs) | **Status**: 🟡 Planning complete
+- **Issue #27**: Environment Configurations — JSON tfvars (4-6 hrs) | **Status**: 🟡 Planning complete
+- **Issue #28**: CI/CD Pipeline Integration — container image build + push + deploy per service (10-12 hrs) | **Status**: 🔴 Not started
+
+### NEW Issue #34: Container Apps Terraform Module
+- **Labels**: `priority:high`, `type:infra`
+- **Estimate**: 8-12 hours | **Status**: 🔴 Not started
+- **Replaces**: `azurerm_static_web_app` + single `azurerm_linux_web_app` in current `modules/compute/main.tf`
+- **Tasks**:
+  - [ ] Create `infrastructure/terraform/modules/container-apps/main.tf`:
+    - `azurerm_container_app_environment` — shared environment with Log Analytics
+    - `azurerm_container_registry` — ACR for all service images
+    - `azurerm_container_app` × 4: BFF (external ingress), Python (internal), C# (internal), Java (internal)
+  - [ ] Create `infrastructure/terraform/modules/container-apps/variables.tf` with per-service resource limits, scaling rules, image tags
+  - [ ] Create `infrastructure/terraform/modules/container-apps/outputs.tf` with FQDN, ACR login server, resource IDs
+  - [ ] Configure ingress: BFF gets external traffic (HTTPS, port 3000); Python/C#/Java are internal-only
+  - [ ] Configure secrets: reference Key Vault for `MAPBOX_TOKEN`, DB credentials, Azure OpenAI keys
+  - [ ] Configure scaling: min 1, max N based on HTTP concurrency per service
+  - [ ] Delete `azurerm_static_web_app` from `modules/compute/main.tf`
+  - [ ] Test: `terraform plan` shows Container Apps resources created, Static Web App removed
+
+### NEW Issue #35: Container Build & Deploy Scripts
+- **Labels**: `priority:high`, `type:infra`
+- **Estimate**: 4-6 hours | **Status**: 🔴 Not started
+- **Tasks**:
+  - [ ] Create `infrastructure/build-containers.sh`:
+    - Builds all 4 Docker images (BFF+frontend unified, Python, C#, Java)
+    - Tags with git SHA
+    - Pushes to ACR
+    - Supports `--dry-run` and accepts `ACR_NAME` via env var
+  - [ ] Create `infrastructure/deploy-container-apps.sh`:
+    - Updates Container App revisions with new image tags
+    - Idempotent, supports `--dry-run`
+    - Validates required inputs (fail fast)
+  - [ ] Update `.github/workflows/` to call these scripts (no inline bash in YAML)
+  - [ ] Remove Static Web App deployment step from CI/CD
+
+### NEW Issue #36: Azure Front Door (CDN + WAF) — Production Only
+- **Labels**: `priority:medium`, `type:infra`
+- **Estimate**: 4-6 hours | **Status**: 🔴 Not started
+- **Rationale**: Elimininating nginx + Static Web App loses their built-in CDN. Azure Front Door restores global CDN caching for static assets, adds SSL termination and WAF rules
+- **Scope**: Production and staging only — dev/UAT use direct Container App ingress
+- **Tasks**:
+  - [ ] Add `azurerm_cdn_frontdoor_profile` to Terraform
+  - [ ] Configure origin: BFF Container App FQDN
+  - [ ] Configure caching rules: cache static assets (JS/CSS/images) aggressively, pass-through `/api/*`
+  - [ ] Configure WAF policy with OWASP rules
+  - [ ] Configure custom domain + managed SSL certificate
+  - [ ] Make conditional: `enable_front_door` flag in tfvars (off for dev)
 
 ### Additional Infrastructure Work
-- **Issue #8**: Azure App Insights & Logging — distributed tracing across polyglot services
-- **Issue #13**: Auto-Scaling — per-service scaling policies
-- **Issue #18**: Custom Domain & SSL
-- **Issue #15**: Image Upload (Azure Blob Storage)
-- **Issue #12**: E2E Tests with Playwright
-- **Issue #16**: Pre-commit Hooks (Husky)
-- **Issue #17**: Architecture Diagrams (Mermaid) — update for polyglot architecture
+- **Issue #8**: Azure App Insights & Logging — distributed tracing across polyglot services | **Status**: 🔴 Not started
+- **Issue #13**: Auto-Scaling — per-Container App scaling policies (replaces App Service scaling) | **Status**: 🔴 Not started
+- **Issue #18**: Custom Domain & SSL (via Azure Front Door in Issue #36) | **Status**: 🔴 Not started
+- **Issue #15**: Image Upload (Azure Blob Storage) | **Status**: 🔴 Not started
+- **Issue #12**: E2E Tests with Playwright (dependency installed, 0 tests) | **Status**: 🔴 Not started
+- **Issue #16**: Pre-commit Hooks (Husky) | **Status**: 🔴 Not started
+- **Issue #17**: Architecture Diagrams (Mermaid) — update for Container Apps architecture | **Status**: 🔴 Not started
 
 ---
 
@@ -431,31 +753,64 @@ Original Milestone 0 issues carried forward but expanded for polyglot architectu
 | **#21** (BFF Research) | **Completed** (Dec 6, 2025) — now being implemented in Phase 2 |
 | **#11** (POI Caching) | **Deferred** to Phase 8 — implement after Java geospatial service is stable |
 | **#19** (Quick Start Templates) | **Deferred** to Phase 8 |
+| **Nginx / Static Web App** | **Superseded** (Mar 4, 2026) — eliminated by Phase 5B (BFF serves frontend). `nginx.conf` and `staticwebapp.config.json` to be deleted |
+| **Azure App Service** (single backend) | **Superseded** (Mar 4, 2026) — replaced by Azure Container Apps for all 4 services (Issue #34) |
 
 ---
 
 ## 🏗️ Architecture Diagram
 
+> **Updated Mar 4, 2026**: BFF now serves the React SPA (eliminates nginx). All services target Azure Container Apps.
+
+### Production Architecture (Post Phase 5B)
 ```mermaid
 graph TB
-    A[React Frontend<br/>TypeScript + Vite<br/>Port 5173] -->|HTTP/REST| B[Node.js BFF<br/>Express Gateway<br/>Port 3000]
+    USER[Browser] -->|HTTPS| FD[Azure Front Door<br/>CDN + WAF + SSL]
+    FD -->|HTTPS| BFF_CA
+
+    subgraph "Azure Container Apps Environment"
+        BFF_CA[Node.js BFF<br/>Express Gateway<br/>+ React SPA Static Files<br/>Port 3000<br/>External Ingress]
+        
+        BFF_CA -->|/api/auth/*<br/>/api/trips*<br/>/api/vehicle-specs| PY_CA[Python Backend<br/>FastAPI<br/>Port 8000<br/>Internal Ingress]
+        BFF_CA -->|/api/v1/parse-vehicle<br/>/api/v1/generate-trip| CS_CA[C# Backend<br/>ASP.NET Web API<br/>Port 8081<br/>Internal Ingress]
+        BFF_CA -->|/api/geocode<br/>/api/directions<br/>/api/search<br/>/api/optimize| JV_CA[Java Backend<br/>Spring Boot<br/>Port 8082<br/>Internal Ingress]
+    end
+
+    PY_CA -->|SQLAlchemy| DB[(PostgreSQL<br/>Flexible Server)]
+    CS_CA -->|Azure.AI.OpenAI| AI[Azure OpenAI<br/>GPT-4]
+    JV_CA -->|WebClient| MB[Mapbox API]
+    JV_CA -->|WebClient| AM[Azure Maps API]
     
-    B -->|/api/auth/*<br/>/api/trips*<br/>/api/vehicle-specs| C[Python Backend<br/>FastAPI<br/>Port 8000]
-    B -->|/api/v1/parse-vehicle<br/>/api/v1/generate-trip| D[C# Backend<br/>ASP.NET Web API<br/>Port 8081]
-    B -->|/api/geocode<br/>/api/directions<br/>/api/search<br/>/api/optimize| E[Java Backend<br/>Spring Boot<br/>Port 8082]
+    ACR[Azure Container<br/>Registry] -.->|Pull Images| BFF_CA
+    ACR -.->|Pull Images| PY_CA
+    ACR -.->|Pull Images| CS_CA
+    ACR -.->|Pull Images| JV_CA
+
+    style BFF_CA fill:#ffeb3b,stroke:#333,stroke-width:3px
+    style PY_CA fill:#ff9800,stroke:#333,stroke-width:2px
+    style CS_CA fill:#9c27b0,stroke:#333,stroke-width:2px
+    style JV_CA fill:#2196f3,stroke:#333,stroke-width:2px
+    style DB fill:#e0e0e0,stroke:#333,stroke-width:2px
+    style FD fill:#e91e63,stroke:#333,stroke-width:2px
+    style ACR fill:#795548,stroke:#333,stroke-width:2px
+```
+
+### Local Development (Docker Compose) 
+```mermaid
+graph TB
+    A[React Dev Server<br/>Vite HMR<br/>Port 5173] -->|HTTP/REST| B[Node.js BFF<br/>Express Gateway<br/>Port 3000]
     
-    C -->|SQLAlchemy| DB[(PostgreSQL<br/>Port 5432)]
-    D -->|Azure.AI.OpenAI| AI[Azure OpenAI<br/>GPT-4]
-    E -->|WebClient| MB[Mapbox API]
-    E -->|WebClient| AM[Azure Maps API]
+    B -->|/api/auth/*<br/>/api/trips*| C[Python Backend<br/>FastAPI<br/>Port 8000]
+    B -->|/api/v1/*| D[C# Backend<br/>ASP.NET<br/>Port 8081]
+    B -->|/api/geocode<br/>/api/directions| E[Java Backend<br/>Spring Boot<br/>Port 8082]
+    
+    C --> DB[(PostgreSQL<br/>Port 5432)]
     
     style B fill:#ffeb3b,stroke:#333,stroke-width:3px
     style A fill:#4caf50,stroke:#333,stroke-width:2px
-    style C fill:#ff9800,stroke:#333,stroke-width:2px
-    style D fill:#9c27b0,stroke:#333,stroke-width:2px
-    style E fill:#2196f3,stroke:#333,stroke-width:2px
-    style DB fill:#e0e0e0,stroke:#333,stroke-width:2px
 ```
+
+> **Note**: In local dev, the Vite dev server on :5173 provides hot module reload. In production/Docker, the BFF serves the built React SPA directly — no separate frontend container or nginx.
 
 ---
 
@@ -467,17 +822,61 @@ graph TB
 - ✅ Issue #1: Frontend Testing Infrastructure
 - ✅ Issue #4: Backend API Mocking
 - ✅ Issue #21: BFF Architecture Research
+- ✅ Architecture Pivot Decision (Mar 4, 2026): Consolidate frontend into BFF, target Azure Container Apps
+- ✅ Frontend Security Review (Mar 4, 2026): Comprehensive audit with 36 issues identified
 
 ### Integration Tested (needs unit tests + external API key testing)
 - 🟢 Phase 2: BFF service (all proxy routes verified, 18/18 Docker Compose integration tests pass)
-- 🟢 Phase 3: C# AI service (BFF→C# proxy verified, fallback mode tested, needs xUnit tests + Azure OpenAI)
+- 🟢 Phase 3: C# AI service (BFF→C# proxy verified, fallback mode tested, [remediation roadmap created](./CSHARP_BACKEND_ROADMAP.md) — 25 TDD tasks, 19-29 hrs)
 - 🟢 Phase 4: Java geospatial service (BFF→Java proxy verified, needs real API key testing)
 
 ### Not Started
-- 🔴 Phase 5: Frontend BFF integration
-- 🔴 Phase 6: Code quality (Issues #2, #3, #5, #20)
-- 🔴 Phase 7: Features (Issues #6, #7, #9, #10, #14)
-- 🔴 Phase 8: Infrastructure (Issues #8, #12, #13, #15-18, #23-28)
+- 🔴 Phase 5: Frontend Standardization & Security (7 sub-tasks: token rotation, devLogin, axios migration, proxy fix, constants, type consolidation, dead code)
+- 🔴 Phase 5B: BFF Consolidation (4 sub-tasks: static serving, unified Dockerfile, CORS/Compose, nginx removal)
+- 🔴 Phase 6: Code quality (Issues #2, #3, #5, #20, #29, #30, #31)
+- 🔴 Phase 7: Features (Issues #6, #7, #9, #10, #14, #32, #33)
+- 🔴 Phase 8: Azure Container Apps (Issues #23-28, #34, #35, #36 + issues #8, #12, #13, #15-18)
+
+### Issue Inventory (36 total)
+
+| Issue | Title | Phase | Priority | Status |
+|-------|-------|-------|----------|--------|
+| #1 | Frontend Testing Infrastructure | — | Critical | ✅ Done |
+| #2 | Fix TypeScript `any` Violations | 6 | Critical | 🔴 Not started |
+| #3 | Remove Hardcoded API Tokens | 6 | Critical | 🔴 Not started |
+| #4 | Backend API Mocking | — | Critical | ✅ Done |
+| #5 | Store Route GeoJSON in Database | 6 | Critical | 🔴 Not started |
+| #6 | Vehicle-Aware Routing | 7 | High | 🔴 Not started |
+| #7 | WCAG AA Accessibility | 7 | High | 🔴 Not started |
+| #8 | App Insights & Logging | 8 | High | 🔴 Not started |
+| #9 | Interactive API Documentation | 7 | High | 🔴 Not started |
+| #10 | JWT Refresh Token Flow | 7 | High | 🔴 Not started |
+| #11 | POI Search Batching/Caching | 8 | Medium | 🔴 Not started |
+| #12 | E2E Tests (Playwright) | 8 | Medium | 🔴 Not started |
+| #13 | Auto-Scaling | 8 | Medium | 🔴 Not started |
+| #14 | AI Trip Generation | 7 | Medium | 🔴 Not started |
+| #15 | Image Upload (Blob Storage) | 8 | Medium | 🔴 Not started |
+| #16 | Pre-commit Hooks (Husky) | 8 | Low | 🔴 Not started |
+| #17 | Architecture Diagrams (Mermaid) | 8 | Low | 🔴 Not started |
+| #18 | Custom Domain & SSL | 8 | Low | 🔴 Not started |
+| #19 | Quick Start Templates | 8 | Low | 🔴 Not started |
+| #20 | Extract Duplicate Code | 6 | Medium | 🔴 Not started |
+| #21 | BFF Architecture Research | — | Low | ✅ Done |
+| #22 | AI Service (Go) | — | — | ⏸️ Superseded by C# |
+| #23 | Terraform Foundation | 8 | Critical | 🔴 Not started |
+| #24 | Core Networking Module | 8 | Critical | 🔴 Not started |
+| #25 | Compute & Database Modules | 8 | Critical | 🔴 Not started |
+| #26 | Security & Monitoring Modules | 8 | Critical | 🔴 Not started |
+| #27 | Environment Configurations | 8 | High | 🔴 Not started |
+| #28 | CI/CD Pipeline Integration | 8 | High | 🔴 Not started |
+| #29 | Decompose FloatingPanel.tsx | 6 | Medium | 🔴 **NEW** |
+| #30 | Add Error Boundaries | 6 | Medium | 🔴 **NEW** |
+| #31 | Fix Broken Tests & Coverage | 6 | Medium | 🔴 **NEW** |
+| #32 | Fix useEffect Cleanup | 7 | Medium | 🔴 **NEW** |
+| #33 | Fix Caching & Performance | 7 | Low | 🔴 **NEW** |
+| #34 | Container Apps Terraform Module | 8 | High | 🔴 **NEW** |
+| #35 | Container Build & Deploy Scripts | 8 | High | 🔴 **NEW** |
+| #36 | Azure Front Door (CDN + WAF) | 8 | Medium | 🔴 **NEW** |
 
 ---
 
@@ -488,6 +887,7 @@ graph TB
 - **BFF ADR**: `docs/adr/001-bff-architecture-strategy.md`
 - **BFF README**: `bff/README.md`
 - **C# Service**: `backend-csharp/README.md`
+- **C# Remediation Roadmap**: `docs/CSHARP_BACKEND_ROADMAP.md` — 8 epics, 25 TDD tasks for SOLID compliance
 - **Java Service**: `backend-java/README.md`
 - **Docker Compose**: `docker-compose.yml`
 - **Environment Setup**: `.env.example`
@@ -867,7 +1267,9 @@ graph TB
 
 ## Milestone 1: Production Ready
 
-**Due**: March 15, 2026 (54 days) | **Effort**: 23-28 hours (1 of 5 complete) | **Priority**: High
+**Due**: March 15, 2026 | **Effort**: 23-28 hours (2 of 5 complete) | **Priority**: High
+
+> **Updated Mar 4, 2026**: Issues #2, #3, #5, #20 now have expanded scope from the frontend security review. See **Phase 5** and **Phase 6** above for the authoritative, updated acceptance criteria. The milestone sections below retain the original detail for reference but Phase sections take precedence where they differ.
 
 These issues **MUST** be resolved before production deployment. They address security vulnerabilities, testing gaps, and core functionality bugs.
 
@@ -922,8 +1324,7 @@ These issues **MUST** be resolved before production deployment. They address sec
 - **Problem**: **CRITICAL SECURITY ISSUE** - Mapbox token hardcoded in docker-compose.yml lines 3-5
 - **Evidence**:
   ```yaml
-  # NOTE: The token below is a structurally valid fake token used for training purposes only.
-  VITE_MAPBOX_TOKEN: pk.eyJ1IjoiZXhhbXBsZS11c2VyIiwiYSI6ImV4YW1wbGVrZXkxMjM0NTY3ODkwIn0.SomeValidLookingSignature
+  VITE_MAPBOX_TOKEN: pk.eyJ1Ijoic3RyaWRlcjEyMzQ1IiwiYSI6ImNtNGRsc2Q2bzBlODMyaXM3bXhwbW85aGgifQ.VVjJaDL2_RWOI8GWzkQqKw
   ```
 - **Missing**: No .env.example files in frontend/ or backend/
 - **Acceptance Criteria**:
@@ -1561,6 +1962,7 @@ gantt
 - **Quick Start**: `.github/copilot-agents/QUICK_START.md` - Agent examples
 - **Cross-Analysis**: `.github/copilot-agents/AGENT_TASK_CROSS_ANALYSIS.md` - Agent-to-issue mapping
 - **Project Guide**: `PROJECT_INSTRUCTIONS.md` - Complete development reference
+- **C# Remediation Roadmap**: `docs/CSHARP_BACKEND_ROADMAP.md` - 8 epics, 25 TDD tasks for SOLID compliance
 - **Deployment**: See deployment scripts in `infrastructure/` directory
 - **GitHub Project**: https://github.com/users/hlucianojr1/projects/1 (use `setup-github-project.sh` to create)
 

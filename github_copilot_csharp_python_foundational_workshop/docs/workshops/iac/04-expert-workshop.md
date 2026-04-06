@@ -204,8 +204,8 @@ Only these Azure regions are permitted:
 
 ```
 Generate an Azure App Service configuration for production that complies with:
-1. Our naming convention: app-{project}-{env}
-2. Required tags from copilot-instructions.md
+1. Our naming convention: app-{project}-api-{env}-{suffix}
+2. Required tags from terraform.instructions.md
 3. Production SKU (P1V3)
 4. Private endpoint integration
 5. TLS 1.2 minimum
@@ -213,16 +213,52 @@ Generate an Azure App Service configuration for production that complies with:
 After generation, validate the output against all policies and list any violations.
 ```
 
+### Pipeline Parallel: Policy Enforcement in CI
+
+Policies should be enforced in the CI pipeline, not just in instruction files. Add a security scan step to `terraform.yml`:
+
+```yaml
+# Add to .github/workflows/terraform.yml validate job:
+
+- name: Security Scan (tfsec)
+  uses: aquasecurity/tfsec-action@v1.0.3
+  with:
+    working_directory: infrastructure/terraform
+    soft_fail: false  # Block merge on HIGH/CRITICAL findings
+
+- name: Policy Check (checkov)
+  uses: bridgecrewio/checkov-action@v12
+  with:
+    directory: infrastructure/terraform
+    framework: terraform
+    check: CKV_AZURE_*  # Azure-specific checks only
+    soft_fail: false
+```
+
+For Azure DevOps, add to the TerraformPlan_Dev stage:
+```yaml
+- task: AzureCLI@2
+  displayName: 'Security Scan'
+  inputs:
+    azureSubscription: $(azureSubscription)
+    scriptType: 'bash'
+    scriptPath: 'infrastructure/scripts/terraform-ci.sh'
+    arguments: '--action validate --environment dev'
+```
+
+The `terraform-ci.sh` script includes tfsec scanning when available, following the cicd.instructions.md Golden Rule of delegating all logic to scripts.
+
 ### Compliance Checklist Generation
 
 ```
-Based on our enterprise policies in copilot-instructions.md, generate a 
+Based on our enterprise policies in terraform.instructions.md, generate a 
 pre-commit compliance checklist for Terraform changes that includes:
 1. Naming validation regex
 2. Required tag verification
 3. SKU appropriateness check
 4. Network security validation
 5. Region compliance
+6. CI pipeline validation (format, init, validate, tfsec)
 ```
 
 ---
@@ -268,21 +304,38 @@ resource "azurerm_virtual_network" "main" {
 
 **GPT-4o / o1-preview attempt**:
 ```hcl
-# Better handles complex conditionals
-resource "azurerm_virtual_network" "main" {
-  count = var.enable_vnet_integration ? 1 : 0
-  
-  name                = "vnet-${var.project_name}-${var.environment}"
-  # ... complete implementation with proper dependency handling
+# Better handles module-level conditionals
+# In root main.tf:
+module "networking" {
+  source = "./modules/networking"
+  count  = local.should_enable_vnet_integration ? 1 : 0
+  # ... pass all variables
 }
 
-# Includes dependent resources with correct count references
-resource "azurerm_subnet" "app" {
-  count = var.enable_vnet_integration ? 1 : 0
-  
-  virtual_network_name = azurerm_virtual_network.main[0].name
-  # Correctly references [0] index
+# Inside modules/networking/main.tf — no count on individual resources:
+resource "azurerm_virtual_network" "main" {
+  name                = "vnet-${var.project_name}-${var.environment}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  address_space       = var.vnet_address_space
+  tags                = var.tags
 }
+
+resource "azurerm_subnet" "app_service" {
+  name                 = "snet-app-${var.environment}"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = [var.subnet_app_service]
+
+  delegation {
+    name = "delegation-app-service"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+# Includes 4 subnets with proper delegations and NSGs
 ```
 
 ### Cost Optimization Strategy
@@ -417,6 +470,22 @@ From `.github/agents/`:
 5. speckit.implement → Execute with validation
 6. speckit.analyze → Verify consistency
 ```
+
+### Pipeline Parallel: Spec Kit for CI/CD Changes
+
+Spec Kit also works for pipeline infrastructure:
+```
+@speckit.specify Create a specification for adding a staging environment to our
+Terraform CI/CD pipeline (.github/workflows/terraform.yml):
+- Purpose: Pre-production validation before prod deployment
+- Trigger: Push to release/* branches
+- Approval: Requires 'staging' GitHub Environment gate
+- Script: Reuse infrastructure/scripts/terraform-ci.sh with --environment stage
+- Artifacts: Pass plan artifact from plan-stage to apply-stage
+- Config: Add stage.tfvars.json to infrastructure/terraform/environments/
+```
+
+The Spec Kit workflow ensures pipeline changes are planned with the same rigor as infrastructure changes.
 
 ### Live Demo: Infrastructure Specification
 
@@ -805,12 +874,16 @@ You've completed all four workshops:
 
 | Resource | Location |
 |----------|----------|
-| Definitions Reference | `docs/workshops/00-copilot-definitions-best-practices.md` |
-| All Workshop Files | `docs/workshops/` |
+| Definitions Reference | `docs/workshops/iac/00-copilot-definitions-best-practices.md` |
+| All Workshop Files | `docs/workshops/iac/` |
 | Custom Agents | `.github/copilot-agents/` |
 | Spec Kit Agents | `.github/agents/` |
 | Project Roadmap | `ROADMAP.md` |
-| Copilot Instructions | `.github/copilot-instructions.md` |
+| Terraform Instructions | `.github/instructions/terraform.instructions.md` |
+| CI/CD Instructions | `.github/instructions/cicd.instructions.md` |
+| Terraform CI/CD Workflow | `.github/workflows/terraform.yml` |
+| Terraform CI Script | `infrastructure/scripts/terraform-ci.sh` |
+| Azure DevOps Pipeline | `azure-pipelines.yml` |
 
 ### Feedback
 

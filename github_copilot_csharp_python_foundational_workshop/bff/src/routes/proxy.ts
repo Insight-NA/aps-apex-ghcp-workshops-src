@@ -36,6 +36,10 @@ export function createProxyRoutes(app: Express, urls: ServiceUrls): void {
         if (auth) {
           proxyReq.setHeader('authorization', auth);
         }
+        // Strip the browser Origin header before forwarding to backends.
+        // The BFF is the CORS boundary — backends should not perform their own
+        // CORS checks against browser origins (they are only reachable via BFF).
+        proxyReq.removeHeader('origin');
       },
       error: (err, _req, res) => {
         console.error('Proxy error:', err.message);

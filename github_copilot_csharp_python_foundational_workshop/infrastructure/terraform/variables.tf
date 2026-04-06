@@ -114,6 +114,17 @@ variable "subnet_private_endpoints" {
   }
 }
 
+variable "subnet_container_apps" {
+  description = "CIDR block for Container Apps subnet (requires /23 or larger)"
+  type        = string
+  default     = "10.0.4.0/23"
+
+  validation {
+    condition     = can(cidrhost(var.subnet_container_apps, 0))
+    error_message = "Container Apps subnet must be valid CIDR notation."
+  }
+}
+
 # -----------------------------------------------------------------------------
 # App Service Configuration
 # -----------------------------------------------------------------------------
@@ -288,6 +299,27 @@ variable "azure_maps_key" {
   default     = ""
 }
 
+variable "azure_openai_endpoint" {
+  description = "Azure OpenAI endpoint URL (for C# backend AI services)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "azure_openai_api_key" {
+  description = "Azure OpenAI API key (for C# backend AI services)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "azure_openai_deployment" {
+  description = "Azure OpenAI deployment/model name (for C# backend AI services)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "database_admin_password" {
   description = "Admin password for PostgreSQL database"
   type        = string
@@ -338,6 +370,70 @@ variable "enable_auto_scaling" {
   description = "Enable auto-scaling for App Service (requires P1V2+ SKU)"
   type        = bool
   default     = false
+}
+
+variable "enable_container_apps" {
+  description = "Enable Container Apps for polyglot microservices (BFF, C#, Java backends)"
+  type        = bool
+  default     = false
+}
+
+# -----------------------------------------------------------------------------
+# Container Apps Configuration
+# -----------------------------------------------------------------------------
+
+variable "bff_config" {
+  description = "Configuration for BFF Container App (Node.js)"
+  type = object({
+    image        = string
+    cpu          = number
+    memory       = string
+    min_replicas = optional(number, 0)
+    max_replicas = optional(number, 5)
+  })
+  default = {
+    image        = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+    cpu          = 0.5
+    memory       = "1Gi"
+    min_replicas = 0
+    max_replicas = 5
+  }
+}
+
+variable "csharp_config" {
+  description = "Configuration for C# Backend Container App (ASP.NET)"
+  type = object({
+    image        = string
+    cpu          = number
+    memory       = string
+    min_replicas = optional(number, 0)
+    max_replicas = optional(number, 5)
+  })
+  default = {
+    image        = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+    cpu          = 0.5
+    memory       = "1Gi"
+    min_replicas = 0
+    max_replicas = 5
+  }
+}
+
+variable "java_config" {
+  description = "Configuration for Java Backend Container App (Spring Boot)"
+  type = object({
+    image        = string
+    cpu          = number
+    memory       = string
+    min_replicas = optional(number, 0)
+    max_replicas = optional(number, 5)
+  })
+  default = {
+    image        = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+    cpu          = 0.75
+    memory       = "1.5Gi"
+    min_replicas = 0
+    max_replicas = 5
+  }
 }
 
 # -----------------------------------------------------------------------------

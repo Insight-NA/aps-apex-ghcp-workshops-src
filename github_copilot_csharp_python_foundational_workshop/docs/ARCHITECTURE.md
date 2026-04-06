@@ -1,7 +1,7 @@
 # Road Trip Planner - Architecture Documentation
 
-**Last Updated**: February 25, 2026  
-**Version**: 2.0.0  
+**Last Updated**: March 4, 2026  
+**Version**: 2.1.0  
 **Status**: Polyglot Microservices Architecture (Docker-First)
 
 ---
@@ -12,12 +12,13 @@
 2. [Service Responsibilities](#service-responsibilities)
 3. [Azure Deployment Architecture](#azure-deployment-architecture)
 4. [Component Hierarchy](#component-hierarchy)
-5. [Data Flow Diagram](#data-flow-diagram)
-6. [Authentication Flow](#authentication-flow)
-7. [Deployment Pipeline](#deployment-pipeline)
-8. [Database Schema](#database-schema)
-9. [Technology Stack](#technology-stack)
-10. [Design Patterns](#design-patterns)
+5. [Mobile App Architecture](#mobile-app-architecture)
+6. [Data Flow Diagram](#data-flow-diagram)
+7. [Authentication Flow](#authentication-flow)
+8. [Deployment Pipeline](#deployment-pipeline)
+9. [Database Schema](#database-schema)
+10. [Technology Stack](#technology-stack)
+11. [Design Patterns](#design-patterns)
 
 ---
 
@@ -29,6 +30,7 @@ The Road Trip Planner uses a **polyglot microservices** architecture with a **No
 graph TB
     subgraph "Client Layer"
         A[React Frontend<br/>TypeScript + Vite<br/>Port 5173]
+        MOBILE[React Native<br/>Expo 54<br/>iOS / Android]
     end
     
     subgraph "API Gateway"
@@ -57,7 +59,9 @@ graph TB
     end
     
     A -->|All API calls| BFF
+    MOBILE -->|All API calls| BFF
     A <-->|Client State| S1
+    MOBILE <-->|Client State| S1
     BFF -->|/api/auth, /api/trips| PY
     BFF -->|/api/v1/parse-vehicle<br/>/api/v1/generate-trip| CS
     BFF -->|/api/geocode, /api/directions<br/>/api/search, /api/optimize| JV
@@ -68,6 +72,7 @@ graph TB
     JV -->|WebClient| E3
     
     style A fill:#4caf50,stroke:#2e7d32,stroke-width:3px,color:#fff
+    style MOBILE fill:#61dafb,stroke:#20232a,stroke-width:3px,color:#000
     style BFF fill:#ffeb3b,stroke:#f57f17,stroke-width:3px
     style PY fill:#ff9800,stroke:#e65100,stroke-width:2px
     style CS fill:#9c27b0,stroke:#6a1b9a,stroke-width:2px,color:#fff
@@ -97,81 +102,125 @@ graph TB
 | **C#** | ASP.NET Web API | 8081 | AI vehicle parsing (Azure OpenAI), AI trip generation, rule-based fallback |
 | **Java** | Spring Boot | 8082 | Geocoding (Mapbox), directions (Mapbox), POI search (Azure Maps), route optimization (Mapbox) |
 | **PostgreSQL** | PostgreSQL 15 | 5432 | Shared relational database for all services |
+| **Mobile App** | React Native / Expo | N/A | iOS/Android client, offline-capable trip viewing, maps integration |
 
 ---
 
 ## Azure Deployment Architecture
 
-Production deployment on Microsoft Azure with multiple managed services.
+Production deployment on Microsoft Azure with polyglot microservices architecture using Container Apps for the BFF and backend services.
 
 ```mermaid
 graph TB
     subgraph "GitHub"
-        GH[GitHub Repository<br/>hlucianojr1/road_tirp_app]
+        GH[GitHub Repository<br/>hlucianojr1/road_trip_app]
     end
     
     subgraph "CI/CD Pipeline"
-        GA[GitHub Actions<br/>backend.yml + frontend.yml]
+        GA[GitHub Actions<br/>Multi-service deployment]
     end
     
     subgraph "Azure Production"
         subgraph "Frontend Hosting"
-            SWA[Azure Static Web Apps<br/>roadtrip-frontend-hl<br/>CDN + HTTPS]
+            SWA[Azure Static Web Apps<br/>React SPA + CDN]
         end
         
-        subgraph "Backend Hosting"
-            AS[Azure App Service<br/>roadtrip-api-hl<br/>B1 SKU - Linux]
-            AI[Application Insights<br/>Monitoring + Logs]
+        subgraph "Container Apps Environment"
+            BFF[BFF Container App<br/>Node.js / Express<br/>External Ingress - Port 3000]
+            CSHARP[C# Backend<br/>ASP.NET Web API<br/>Internal Ingress - Port 8081]
+            JAVA[Java Backend<br/>Spring Boot<br/>Internal Ingress - Port 8082]
+        end
+        
+        subgraph "App Service"
+            AS[Python Backend<br/>FastAPI<br/>Trips CRUD + Auth]
         end
         
         subgraph "Data Storage"
-            PG[(PostgreSQL Flexible Server<br/>roadtrip-db-hl<br/>Burstable B1ms)]
+            PG[(PostgreSQL Flexible Server<br/>Shared Database)]
         end
         
-        subgraph "Security"
+        subgraph "Security & Monitoring"
             KV[Azure Key Vault<br/>API Keys + Secrets]
+            AI[Application Insights<br/>Monitoring + Logs]
+            LAW[Log Analytics<br/>Container Apps Logs]
         end
     end
     
     subgraph "External Services"
-        EXT1[Mapbox API]
-        EXT2[Google Gemini]
-        EXT3[Azure Maps]
+        MB[Mapbox API<br/>Routing + Directions]
+        AO[Azure OpenAI<br/>AI Vehicle Parsing]
+        AM[Azure Maps<br/>POI Search]
     end
     
     GH -->|Push to main| GA
     GA -->|Deploy Frontend| SWA
-    GA -->|Deploy Backend| AS
-    SWA -->|API Requests| AS
-    AS -->|Read Secrets| KV
+    GA -->|Deploy Container Apps| BFF
+    GA -->|Deploy App Service| AS
+    
+    SWA -->|API Requests| BFF
+    BFF -->|/api/trips, /api/auth| AS
+    BFF -->|/api/v1/parse-vehicle| CSHARP
+    BFF -->|/api/geocode, /api/directions| JAVA
+    
     AS <-->|SQL Queries| PG
+    AS -->|Read Secrets| KV
+    CSHARP -->|Read Secrets| KV
+    JAVA -->|Read Secrets| KV
+    
+    BFF -->|Telemetry| LAW
+    CSHARP -->|Telemetry| LAW
+    JAVA -->|Telemetry| LAW
     AS -->|Telemetry| AI
-    AS -->|API Calls| EXT1
-    AS -->|API Calls| EXT2
-    AS -->|API Calls| EXT3
+    
+    CSHARP -->|AI Calls| AO
+    JAVA -->|Geocoding| MB
+    JAVA -->|POI Search| AM
     
     style GH fill:#24292e,stroke:#fff,stroke-width:2px,color:#fff
     style GA fill:#2088ff,stroke:#0366d6,stroke-width:2px,color:#fff
     style SWA fill:#0078d4,stroke:#004578,stroke-width:3px,color:#fff
-    style AS fill:#0078d4,stroke:#004578,stroke-width:3px,color:#fff
+    style BFF fill:#68217a,stroke:#4a1557,stroke-width:3px,color:#fff
+    style CSHARP fill:#512bd4,stroke:#3a1d9e,stroke-width:2px,color:#fff
+    style JAVA fill:#f89820,stroke:#b86d18,stroke-width:2px
+    style AS fill:#0078d4,stroke:#004578,stroke-width:2px,color:#fff
     style PG fill:#336791,stroke:#1a3a52,stroke-width:2px,color:#fff
     style KV fill:#ffb900,stroke:#a67800,stroke-width:2px
     style AI fill:#00bcf2,stroke:#0078d4,stroke-width:2px
+    style LAW fill:#00bcf2,stroke:#0078d4,stroke-width:2px
 ```
 
 ### Azure Resources
 
-| Resource | Name | SKU/Tier | Purpose |
+| Resource | Type | SKU/Tier | Purpose |
 |----------|------|----------|---------|
-| Static Web Apps | `roadtrip-frontend-hl` | Free | Frontend hosting with CDN |
-| App Service | `roadtrip-api-hl` | B1 (Linux) | Backend API hosting |
-| PostgreSQL Flexible Server | `roadtrip-db-hl` | Burstable B1ms | Production database |
-| Key Vault | `roadtrip-kv-hl` | Standard | Secret management |
-| Application Insights | `roadtrip-insights` | - | Monitoring & logging |
+| Static Web App | `swa-roadtrip-{env}` | Free/Standard | Frontend hosting with CDN |
+| Container Apps Environment | `cae-roadtrip-{env}` | Consumption | Microservices hosting environment |
+| BFF Container App | `ca-bff-{env}` | 0.5 CPU / 1Gi | API gateway (Node.js) - external ingress |
+| C# Backend Container App | `ca-csharp-{env}` | 0.5 CPU / 1Gi | AI vehicle parsing (ASP.NET) - internal |
+| Java Backend Container App | `ca-java-{env}` | 0.75 CPU / 1.5Gi | Geospatial services (Spring Boot) - internal |
+| App Service Plan | `asp-roadtrip-{env}` | B1/P1V3 | Python backend hosting |
+| App Service | `app-roadtrip-api-{env}` | Linux | Trips CRUD, Auth (FastAPI) |
+| PostgreSQL Flexible Server | `psql-roadtrip-{env}` | B1ms/D2s_v3 | Shared database |
+| Key Vault | `kv-roadtrip-{env}` | Standard | Secret management |
+| Log Analytics Workspace | `law-roadtrip-{env}` | PerGB2018 | Container Apps logging |
+| Application Insights | `ai-roadtrip-{env}` | - | App Service monitoring |
+
+### Network Architecture
+
+| Environment | VNet Integration | Private Endpoints | Container Apps Ingress |
+|-------------|------------------|-------------------|------------------------|
+| dev | ❌ Disabled | ❌ Disabled | BFF: External, Others: Internal |
+| prod | ✅ Enabled | ✅ Enabled | BFF: External, Others: Internal |
+
+**Traffic Flow:**
+1. User → Static Web App (CDN)
+2. Static Web App → BFF Container App (public FQDN)
+3. BFF → Internal backends (C#, Java, Python via internal network)
+4. Internal backends → External APIs (Mapbox, Azure OpenAI, Azure Maps)
 
 ### Deployment Regions
 
-- **Primary**: East US (all resources)
+- **Primary**: Central US (all resources)
 - **CDN**: Global (Static Web Apps automatic)
 
 ---
@@ -250,6 +299,107 @@ graph TD
 | `ExploreView.tsx` | Page | POI discovery, public trips |
 | `AllTripsView.tsx` | Page | User's trip library |
 | `TripsView.tsx` | Page | Trip list view |
+
+---
+
+## Mobile App Architecture
+
+The Road Trip Planner includes a **React Native mobile app** built with Expo for iOS and Android platforms. The mobile app mirrors the web frontend's state management patterns using Zustand.
+
+> ✅ **Architecture Compliant**: The mobile app routes all API calls through the BFF (port 3000), just like the web frontend.
+
+### Technology Stack
+
+| Technology | Version | Purpose |
+|------------|---------|--------|
+| React Native | 0.81.5 | Cross-platform mobile framework |
+| Expo | ~54.0.28 | Development tooling & native APIs |
+| React | 19.1.0 | UI library |
+| TypeScript | ~5.9.2 | Type safety |
+| Zustand | ^5.0.9 | State management (mirrors web) |
+| React Query | ^5.90.12 | Server state & caching |
+| React Navigation | ^7.x | Navigation (stack + bottom tabs) |
+| Axios | ^1.13.2 | HTTP client |
+| react-native-maps | 1.20.1 | Map integration (Google/Apple Maps) |
+| expo-location | ~19.0.8 | Device location services |
+| expo-auth-session | ~7.0.10 | OAuth authentication |
+
+### Mobile Navigation Structure
+
+```mermaid
+graph TD
+    subgraph "Root Navigator"
+        ROOT[RootNavigator<br/>Auth Conditional]
+    end
+    
+    subgraph "Unauthenticated"
+        AUTH[AuthNavigator]
+        LAND[LandingScreen]
+        LOGIN[LoginScreen]
+    end
+    
+    subgraph "Authenticated"
+        APP[AppNavigator]
+        TABS[BottomTabNavigator]
+        HOME[HomeScreen]
+        TRIPS[TripListScreen]
+        EXPLORE[ExploreScreen]
+        PROFILE[ProfileScreen]
+    end
+    
+    subgraph "Stack Screens"
+        DETAIL[TripDetailScreen]
+        PLANNER[TripPlannerScreen]
+        PLACE[PlaceDetailScreen]
+    end
+    
+    ROOT -->|Not authenticated| AUTH
+    ROOT -->|Authenticated| APP
+    AUTH --> LAND
+    AUTH --> LOGIN
+    APP --> TABS
+    TABS --> HOME
+    TABS --> TRIPS
+    TABS --> EXPLORE
+    TABS --> PROFILE
+    TRIPS --> DETAIL
+    HOME --> PLANNER
+    EXPLORE --> PLACE
+    
+    style ROOT fill:#61dafb,stroke:#20232a,stroke-width:3px
+    style TABS fill:#4caf50,stroke:#2e7d32,stroke-width:2px
+    style AUTH fill:#ff9800,stroke:#e65100,stroke-width:2px
+```
+
+### Mobile State Management
+
+The mobile app uses **Zustand stores** consistent with the web frontend:
+
+| Store | Purpose |
+|-------|--------|
+| `useAuthStore` | User authentication state, token persistence via AsyncStorage |
+| `useTripStore` | Trip data, stops, route, vehicle specs (mirrors web store) |
+
+### Directory Structure
+
+```
+mobile/src/
+├── components/      # Reusable UI components (MapComponent, TripCard)
+├── constants/       # App constants (version.ts)
+├── navigation/      # Navigation configuration
+├── screens/         # Screen components
+├── services/        # API client (api.ts)
+├── store/           # Zustand stores
+├── types/           # TypeScript interfaces
+└── utils/           # Helper functions
+```
+
+### API Communication
+
+- **Base URL**: `http://localhost:3000` (via BFF)
+- **Android Emulator**: `http://10.0.2.2:3000` (auto-detected)
+- Full access to all backend services through the unified BFF gateway
+- JWT authentication via `Authorization: Bearer <token>` header
 
 ---
 
@@ -672,5 +822,5 @@ For individual diagram export, use online tools:
 ---
 
 **Maintained by**: Road Trip Planner Development Team  
-**Last Review**: December 8, 2025  
-**Next Review**: Post-launch (February 2026)
+**Last Review**: March 4, 2026  
+**Next Review**: June 2026

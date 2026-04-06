@@ -14,20 +14,20 @@
       },
       "oauth_client": [
         {
-          "client_id": "805801248992-SOMERANDOMAPPID.apps.googleusercontent.com", //REPLACE_ME_WITH_YOUR_REAL_CLIENT_ID
+          "client_id": "805801248992-4algrvl1u3vtb0b2um2fr9pa9iaa0q2e.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "REPLACE_ME_WITH_YOUR_REAL_API_KEY"
+          "current_key": "AIzaSyCiq6esjFTtNwD4SGzHUhV_tnaWfQS8RVo"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "805801248992-SOMERANDOMAPPID.apps.googleusercontent.com", //REPLACE_ME_WITH_YOUR_REAL_CLIENT_ID
+              "client_id": "805801248992-4algrvl1u3vtb0b2um2fr9pa9iaa0q2e.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

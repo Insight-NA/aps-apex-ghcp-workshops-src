@@ -5,7 +5,7 @@
  * All other page objects extend or compose with this class.
  */
 
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, Response, expect } from '@playwright/test';
 
 export class BasePage {
   readonly page: Page;
@@ -110,9 +110,9 @@ export class BasePage {
     await this.page.waitForLoadState('networkidle', { timeout });
   }
 
-  /** Wait for a specific API response */
-  async waitForApiResponse(urlPattern: string | RegExp, timeout: number = 10_000): Promise<void> {
-    await this.page.waitForResponse(
+  /** Wait for a specific API response and return it */
+  async waitForApi(urlPattern: string | RegExp, timeout: number = 10_000): Promise<Response> {
+    return this.page.waitForResponse(
       (response) => {
         const url = response.url();
         return typeof urlPattern === 'string'

@@ -89,4 +89,6 @@ test.describe('Sidebar Navigation @smoke @navigation', () => {
     await page.waitForURL('**/trips');
     expect(page.url()).toContain('/trips');
   });
+
+
 });

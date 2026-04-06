@@ -84,8 +84,8 @@ gh issue create --repo $REPO --title "[Security] Remove Hardcoded API Tokens and
 
 **Evidence**:
 \\\`\\\`\\\`yaml
-# NOTE: The token below is a structurally valid fake token used for training purposes only. Have AI create a new token for your own use and never commit real tokens to source control.
-VITE_MAPBOX_TOKEN:
+VITE_MAPBOX_TOKEN: pk.eyJ1Ijoic3RyaWRlcjEyMzQ1IiwiYSI6ImNtNGRsc2Q2bzBlODMyaXM3bXhwbW85aGgifQ.VVjJaDL2_RWOI8GWzkQqKw
+\\\`\\\`\\\`
 
 **Missing**: No .env.example files in frontend/ or backend/
 

@@ -120,21 +120,32 @@ Resources: {{RESOURCE_LIST}}
 
 ### 5. Instruction Files
 
-**Definition**: Configuration files (like `.github/copilot-instructions.md`) that provide persistent context to Copilot about project conventions, architecture decisions, and constraints.
+**Definition**: Scoped configuration files (`.github/instructions/*.instructions.md`) that provide persistent context to Copilot about project conventions, architecture decisions, and constraints.
 
 **IaC/DevOps Context**:
 - Define approved Azure services and SKUs
 - Specify networking patterns (public vs private endpoints)
 - Enforce tagging standards and naming conventions
 - Reference compliance requirements
+- Enforce CI/CD Golden Rule (no inline code in YAML)
 
-**Repo Example** (from `copilot-instructions.md`):
+**Repo Example** (from `.github/instructions/terraform.instructions.md`):
 ```markdown
-### Infrastructure Standards
-- **Compute**: Azure App Service (P1V3 for prod, B1 for dev)
-- **Database**: PostgreSQL Flexible Server (not single server)
-- **Networking**: Private endpoints required for prod/stage/uat
-- **Secrets**: Azure Key Vault (no hardcoded values)
+## Format (Non-Negotiable)
+- **Environment configs**: `*.tfvars.json` ONLY — never HCL `.tfvars` files
+- **Module-first**: All resources go inside modules in `infrastructure/terraform/modules/`
+- **Every module must have**: `main.tf`, `variables.tf`, `outputs.tf`
+```
+
+**Repo Example** (from `.github/instructions/cicd.instructions.md`):
+```markdown
+## Golden Rule — No Inline Code in Pipeline YAML
+Pipeline YAML is only for:
+- Job and step definitions
+- Environment variable injection
+- Conditional logic (if:) and ordering (needs:)
+
+All logic belongs in: `infrastructure/*.sh` scripts
 ```
 
 ---
@@ -316,20 +327,43 @@ Generate Azure infrastructure for a development environment:
 
 #### 1. Pipeline Generation Pattern
 
-**Best Practice**: Start with pipeline skeleton, then expand stages.
+**Best Practice**: Follow the cicd.instructions.md Golden Rule — delegate all logic to scripts. Pipeline YAML should only define jobs, steps, env vars, and conditionals.
 
 ```yaml
 # Step 1: Ask Copilot for skeleton
-# "Generate Azure DevOps pipeline skeleton for Python backend + React frontend"
+# "Generate GitHub Actions workflow for Terraform CI/CD following cicd.instructions.md"
 
-# Step 2: Expand each stage
-# "Add caching for pip dependencies in BuildBackend job"
+# Step 2: Copilot delegates to script (Golden Rule compliant)
+- name: Terraform Plan (dev)
+  run: ./infrastructure/scripts/terraform-ci.sh --action plan --environment dev
+  env:
+    TF_VAR_mapbox_token: ${{ secrets.TF_VAR_MAPBOX_TOKEN }}
 
-# Step 3: Add deployment
-# "Add deployment stage to Azure App Service with slot swapping"
+# Step 3: Add approval gates via GitHub Environments
+  environment: dev  # Requires Environment approval
 
 # Step 4: Add quality gates
-# "Add SonarCloud analysis and minimum coverage threshold"
+- uses: aquasecurity/tfsec-action@v1.0.3
+  with:
+    working_directory: infrastructure/terraform
+```
+
+Our repo demonstrates this pattern in `.github/workflows/terraform.yml` — the workflow YAML contains no inline Terraform logic.
+
+#### 2. Dual-Platform Pipeline Support
+
+**Best Practice**: Maintain parity between GitHub Actions and Azure DevOps by sharing the same script.
+
+```bash
+# Both platforms call the same script:
+# GitHub Actions:
+- run: ./infrastructure/scripts/terraform-ci.sh --action plan --environment dev
+
+# Azure DevOps:
+- task: AzureCLI@2
+  inputs:
+    scriptPath: 'infrastructure/scripts/terraform-ci.sh'
+    arguments: '--action plan --environment dev'
 ```
 
 #### 2. Variable Group Management
@@ -509,12 +543,16 @@ Generate a GitHub Action to scan for exposed secrets:
 
 | Resource | Location |
 |----------|----------|
+| Terraform Instructions | `.github/instructions/terraform.instructions.md` |
+| CI/CD Instructions | `.github/instructions/cicd.instructions.md` |
 | Copilot Instructions | `.github/copilot-instructions.md` |
 | Custom Agents | `.github/copilot-agents/` |
 | Spec Kit Agents | `.github/agents/` |
 | Terraform Modules | `infrastructure/terraform/modules/` |
 | Environment Configs | `infrastructure/terraform/environments/` |
-| Pipeline Config | `azure-pipelines.yml` |
+| Terraform CI/CD Workflow | `.github/workflows/terraform.yml` |
+| Terraform CI Script | `infrastructure/scripts/terraform-ci.sh` |
+| Azure DevOps Pipeline | `azure-pipelines.yml` |
 | Project Roadmap | `ROADMAP.md` (Issues #23-#28 for IaC) |
 
 ---

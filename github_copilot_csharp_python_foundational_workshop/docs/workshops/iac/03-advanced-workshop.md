@@ -36,114 +36,155 @@ VNet → Subnets → NSGs → NSG Associations → Private DNS Zones → Private
 
 Without CoT, Copilot might generate resources in wrong order or miss dependencies.
 
+> **Key Pattern**: In our repo, the `count` conditional lives on the **module call** in `main.tf`, NOT on individual resources inside the module. This keeps module code clean.
+
 ### Chain-of-Thought Prompt Structure
 
 ```
 Think through this networking module step by step:
 
 **Step 1: Analyze Requirements**
-- Dev environment: No VNet (public access)
+- Dev environment: No VNet (module not instantiated via count=0)
 - Prod environment: Full VNet with private endpoints
 
 **Step 2: Design Address Space**
 - VNet CIDR: 10.0.0.0/16 (65,536 addresses)
 - Subnet allocation:
-  - App Service: 10.0.1.0/24 (256 addresses, needs /27 for VNet integration)
-  - Database: 10.0.2.0/24 (256 addresses)
-  - Private Endpoints: 10.0.3.0/24 (256 addresses)
+  - App Service: 10.0.1.0/24 (with Microsoft.Web/serverFarms delegation)
+  - Database: 10.0.2.0/24 (with Microsoft.DBforPostgreSQL/flexibleServers delegation)
+  - Private Endpoints: 10.0.3.0/24 (private_endpoint_network_policies = "Disabled")
+  - Container Apps: 10.0.4.0/23 (conditional, with Microsoft.App/environments delegation)
 
 **Step 3: Plan Security (NSGs)**
-- App subnet NSG: Allow 443 inbound, deny all else
-- Database subnet NSG: Allow 5432 from app subnet only
-- Private Endpoint subnet: No NSG (Azure manages)
+- App subnet NSG: Allow 443+80 inbound, allow 5432 outbound to DB subnet
+- Database subnet NSG: Allow 5432 from app subnet only, deny all other inbound
+- Private Endpoint subnet: Allow VNet inbound only
 
-**Step 4: Identify Private Endpoints Needed**
-- PostgreSQL Flexible Server → privatelink.postgres.database.azure.com
+**Step 4: Identify Private DNS Zones** (conditional on enable_private_endpoints)
+- PostgreSQL → privatelink.postgres.database.azure.com
 - Key Vault → privatelink.vaultcore.azure.net
 
-**Step 5: Determine Conditional Logic**
-- Use count = var.enable_vnet_integration ? 1 : 0 for VNet resources
-- Use dynamic blocks for optional configurations
+**Step 5: Module Integration**
+- The root main.tf controls whether networking runs:
+  count = local.should_enable_vnet_integration ? 1 : 0
+- Outputs are always provided (no null-safe needed inside module)
+- Downstream modules reference: module.networking[0].subnet_app_service_id
 
-Now generate the Terraform module with proper resource ordering and dependencies.
+Now generate the Terraform module.
 ```
 
 ### Live Demo: VNet Module with CoT
 
+From our actual `modules/networking/main.tf` — notice resources are NOT wrapped in `count`:
 ```hcl
 # modules/networking/main.tf
 
-# Step 1: Conditional VNet (only if enable_vnet_integration = true)
+# VNet — always created when module is instantiated
 resource "azurerm_virtual_network" "main" {
-  count = var.enable_vnet_integration ? 1 : 0
-  
   name                = "vnet-${var.project_name}-${var.environment}"
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = var.vnet_address_space
-  
-  tags = var.tags
+  tags                = var.tags
 }
 
-# Step 2: Subnets (depend on VNet existing)
-resource "azurerm_subnet" "app" {
-  count = var.enable_vnet_integration ? 1 : 0
-  
-  name                 = "snet-app"
+# App Service Subnet — with delegation for VNet integration
+resource "azurerm_subnet" "app_service" {
+  name                 = "snet-app-${var.environment}"
   resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.main[0].name
-  address_prefixes     = [var.subnet_app_cidr]
-  
-  # Required for App Service VNet integration
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = [var.subnet_app_service]
+
   delegation {
-    name = "app-service-delegation"
+    name = "delegation-app-service"
     service_delegation {
-      name = "Microsoft.Web/serverFarms"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/action"
-      ]
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
 
-# Step 3: NSGs (created before association)
-resource "azurerm_network_security_group" "app" {
-  count = var.enable_vnet_integration ? 1 : 0
-  
-  name                = "nsg-app-${var.environment}"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  
-  security_rule {
-    name                       = "AllowHTTPS"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+# Database Subnet — with PostgreSQL delegation
+resource "azurerm_subnet" "database" {
+  name                 = "snet-db-${var.environment}"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = [var.subnet_database]
+
+  delegation {
+    name = "delegation-postgresql"
+    service_delegation {
+      name    = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
   }
-  
-  tags = var.tags
 }
 
-# Step 4: NSG Associations (after both exist)
-resource "azurerm_subnet_network_security_group_association" "app" {
-  count = var.enable_vnet_integration ? 1 : 0
-  
-  subnet_id                 = azurerm_subnet.app[0].id
-  network_security_group_id = azurerm_network_security_group.app[0].id
+# Private Endpoints Subnet
+resource "azurerm_subnet" "private_endpoints" {
+  name                              = "snet-pe-${var.environment}"
+  resource_group_name               = var.resource_group_name
+  virtual_network_name              = azurerm_virtual_network.main.name
+  address_prefixes                  = [var.subnet_private_endpoints]
+  private_endpoint_network_policies = "Disabled"
+}
+
+# Container Apps Subnet — conditional on var.enable_container_apps
+resource "azurerm_subnet" "container_apps" {
+  count = var.enable_container_apps ? 1 : 0
+
+  name                 = "snet-ca-${var.environment}"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = [var.subnet_container_apps]
+
+  delegation {
+    name = "delegation-container-apps"
+    service_delegation {
+      name    = "Microsoft.App/environments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
 }
 ```
 
-### Exercise: Complete the CoT
+The **module call** in root `main.tf` controls when networking is created:
+```hcl
+# infrastructure/terraform/main.tf
+module "networking" {
+  source = "./modules/networking"
+  count  = local.should_enable_vnet_integration ? 1 : 0
+  # ... pass variables
+}
+```
 
-Continue the chain-of-thought to add:
-- Database subnet with NSG (allow 5432 from app subnet only)
-- Private endpoint subnet
-- Private DNS zone for PostgreSQL
+### Pipeline Parallel: CoT for Multi-Job Workflows
+
+The same CoT pattern works for complex pipeline architecture:
+```
+Think through Terraform CI/CD deployment step by step:
+
+**Step 1: Validation** (runs on every push and PR)
+- fmt -check, init -backend=false, validate
+- No Azure credentials needed
+
+**Step 2: Plan** (runs after validation passes)
+- Needs Azure credentials and backend config
+- Upload plan artifact with 5-day retention
+
+**Step 3: Apply** (only on push to main)
+- Download plan artifact from Step 2
+- Requires GitHub Environment approval gate
+- Delegates to infrastructure/scripts/terraform-ci.sh
+
+**Step 4: Production** (manual dispatch only)
+- Separate plan → apply with 'production' environment
+- Requires senior engineer approval
+
+Now generate the GitHub Actions workflow.
+```
+
+This produced our actual `.github/workflows/terraform.yml` with its 5-job structure.
 
 ---
 
@@ -151,76 +192,71 @@ Continue the chain-of-thought to add:
 
 ### Concept
 
-Instruction files (`.github/copilot-instructions.md`) establish persistent context for Copilot, ensuring all generated Terraform follows organizational standards.
+Instruction files (`.github/instructions/*.instructions.md`) establish persistent context for Copilot, ensuring all generated Terraform follows organizational standards. Our repo uses **scoped instructions** (not a single copilot-instructions.md).
 
-### Our Repo's Instruction File
+### Our Repo's Terraform Instruction File
 
-```markdown
-# From .github/copilot-instructions.md
-
-## Infrastructure Standards
-- **Provider**: azurerm ~>3.85
-- **Naming**: {resource-type}-{project}-{environment}-{suffix}
-- **Backend**: Azure Storage Account for state
-- **Required Tags**: Environment, Project, ManagedBy, Owner, CostCenter
-
-## Terraform Module Structure
-Every module must contain:
-1. main.tf - Resource definitions
-2. variables.tf - Input variables with descriptions and validation
-3. outputs.tf - Exported values for other modules
-4. versions.tf - Provider and Terraform version constraints
-5. README.md - Module documentation with examples
-
-## Security Requirements
-- No public endpoints in production
-- Managed identity for cross-service authentication
-- All secrets in Azure Key Vault
-- TLS 1.2 minimum for all services
-```
-
-### Adding IaC-Specific Instructions
-
-Create or update `.github/copilot-instructions.md`:
+From `.github/instructions/terraform.instructions.md` (scoped to `infrastructure/**/*.{tf,tfvars,json}`):
 
 ```markdown
-## Terraform Patterns
+## Format (Non-Negotiable)
+- **Environment configs**: `*.tfvars.json` ONLY — never HCL `.tfvars` files (CI/CD requires JSON)
+- **Module-first**: All resources go inside modules in `infrastructure/terraform/modules/`
+  — never inline resources in root `main.tf`
+- **Every module must have**: `main.tf`, `variables.tf`, `outputs.tf`
 
-### Conditional Resources
-Use count for boolean conditions:
-```hcl
-resource "azurerm_private_endpoint" "db" {
-  count = var.enable_private_endpoints ? 1 : 0
-  # ...
-}
-```
+## Variable Standards
+- All enum-like variables **must** have `validation` blocks
+- All variables **must** have `description` fields
 
-### Referencing Conditional Resources
-Always use index when referencing counted resources:
-```hcl
-subnet_id = var.enable_vnet_integration ? azurerm_subnet.app[0].id : null
-```
+## Secrets Management
+- Use `TF_VAR_*` environment variables for all secrets
+- Never commit passwords, API keys, or connection strings to any `.tfvars.json`
+- Reference Azure Key Vault secrets at deploy time via the shell scripts
 
-### Dynamic Blocks
-Use for optional nested configurations:
-```hcl
-dynamic "ip_restriction" {
-  for_each = var.ip_restrictions
-  content {
-    ip_address = ip_restriction.value
-  }
-}
+## Conditional Resources
+count = var.enable_vnet ? 1 : 0
 ```
 
-### Lifecycle Rules
-Add for critical resources:
-```hcl
-lifecycle {
-  prevent_destroy = true  # For production databases
-  ignore_changes = [tags["CreatedDate"]]
-}
+### Our CI/CD Instruction File
+
+From `.github/instructions/cicd.instructions.md` (scoped to workflows and scripts):
+
+```markdown
+## Golden Rule — No Inline Code in Pipeline YAML
+
+Pipeline YAML is only for:
+- Job and step definitions
+- Environment variable injection
+- Conditional logic (if:)
+- Ordering dependencies (needs:)
+
+All logic belongs in:
+- `infrastructure/*.sh` (bash) for Linux/macOS runners
+- `infrastructure/*.ps1` (PowerShell) for Windows runners
 ```
+
+### Pipeline Parallel: Instruction-Driven Pipeline Generation
+
+With the cicd.instructions.md active, Copilot generates compliant YAML:
+
+```yaml
+# WITHOUT cicd.instructions.md — Copilot generates inline logic:
+- name: Deploy
+  run: |
+    cd infrastructure/terraform
+    terraform init
+    terraform plan -var-file=environments/dev.tfvars.json
+    terraform apply -auto-approve
+
+# WITH cicd.instructions.md — Copilot delegates to script:
+- name: Terraform Plan (dev)
+  run: ./infrastructure/scripts/terraform-ci.sh --action plan --environment dev
+  env:
+    ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
 ```
+
+The instruction file ensures ALL generated pipeline code follows the Golden Rule.
 
 ### Live Demo: Instruction-Driven Generation
 
@@ -427,11 +463,11 @@ Copilot's Plan Mode creates a structured approach to module development, outlini
 In Copilot Chat:
 ```
 /plan Create a networking module for Azure with:
-- Conditional VNet (enabled for prod, disabled for dev)
-- Three subnets: app, database, private-endpoints
-- NSGs with environment-specific rules
-- Private DNS zones for PostgreSQL and Key Vault
-- Private endpoints for both services
+- 4 subnets: App Service (with delegation), Database (with PostgreSQL delegation),
+  Private Endpoints, Container Apps (conditional)
+- NSGs with environment-specific rules (app, database, private-endpoints)
+- Private DNS zones for PostgreSQL and Key Vault (conditional on enable_private_endpoints)
+- Module is called with count in root main.tf, not conditional within
 ```
 
 ### Plan Mode Output
@@ -442,47 +478,59 @@ In Copilot Chat:
 ### Files to Create
 
 1. **modules/networking/main.tf**
-   - azurerm_virtual_network.main (conditional)
-   - azurerm_subnet.app (with App Service delegation)
-   - azurerm_subnet.database
-   - azurerm_subnet.private_endpoints
-   - azurerm_network_security_group.app
+   - azurerm_virtual_network.main
+   - azurerm_subnet.app_service (with Microsoft.Web/serverFarms delegation)
+   - azurerm_subnet.database (with Microsoft.DBforPostgreSQL/flexibleServers delegation)
+   - azurerm_subnet.private_endpoints (private_endpoint_network_policies = "Disabled")
+   - azurerm_subnet.container_apps (conditional, with Microsoft.App/environments delegation)
+   - azurerm_network_security_group.app_service
    - azurerm_network_security_group.database
+   - azurerm_network_security_group.private_endpoints
    - NSG associations
 
 2. **modules/networking/dns.tf**
-   - azurerm_private_dns_zone.postgresql
-   - azurerm_private_dns_zone.keyvault
+   - azurerm_private_dns_zone.postgresql (conditional on enable_private_endpoints)
+   - azurerm_private_dns_zone.keyvault (conditional)
    - DNS zone VNet links
 
-3. **modules/networking/private_endpoints.tf**
-   - azurerm_private_endpoint.postgresql
-   - azurerm_private_endpoint.keyvault
-   - Private DNS A records
-
-4. **modules/networking/variables.tf**
-   - enable_vnet_integration (bool)
+3. **modules/networking/variables.tf**
    - enable_private_endpoints (bool)
+   - enable_container_apps (bool)
    - vnet_address_space (list)
-   - subnet configurations
+   - subnet_app_service, subnet_database, subnet_private_endpoints, subnet_container_apps
+   - project_name, environment, location, resource_group_name
+   - tags
 
-5. **modules/networking/outputs.tf**
-   - vnet_id
-   - subnet_ids (map)
+4. **modules/networking/outputs.tf**
+   - vnet_id, vnet_name
+   - subnet_app_service_id, subnet_database_id, subnet_private_endpoints_id
+   - subnet_container_apps_id (conditional)
    - private_dns_zone_ids
 
-6. **modules/networking/versions.tf**
-   - Terraform >= 1.5.0
-   - azurerm >= 3.85.0
-
-### Dependencies
-- Resource Group must exist
-- PostgreSQL and Key Vault resources for private endpoint targets
+### Root main.tf Integration
+module "networking" {
+  source = "./modules/networking"
+  count  = local.should_enable_vnet_integration ? 1 : 0
+  # ... pass variables
+}
 
 ### Execution Order
-1. VNet → 2. Subnets → 3. NSGs → 4. NSG Associations → 
-5. DNS Zones → 6. DNS Links → 7. Private Endpoints
+1. VNet → 2. Subnets (3 fixed + 1 conditional) → 3. NSGs → 
+4. NSG Associations → 5. DNS Zones → 6. DNS Links
 ```
+
+### Pipeline Parallel: Plan Mode for Workflow Architecture
+
+```
+/plan Design a Terraform CI/CD workflow with:
+- Validate job (no Azure creds): fmt, init -backend=false, validate
+- Plan jobs per environment: delegates to terraform-ci.sh
+- Apply jobs with GitHub Environment approval gates
+- Artifact passing between plan and apply
+- Manual dispatch for production deployments
+```
+
+Plan Mode produces the job dependency graph before generating any YAML.
 
 ### Executing the Plan
 
@@ -540,62 +588,68 @@ You are an expert in Terraform and Azure infrastructure planning.
 
 ### Agent Output
 
+Compare this to our actual `modules/security/main.tf`:
 ```hcl
-# modules/security/variables.tf
-variable "project_name" {
-  description = "Project name for resource naming"
-  type        = string
-}
-
-variable "environment" {
-  description = "Environment (dev, uat, stage, prod)"
-  type        = string
-  validation {
-    condition     = contains(["dev", "uat", "stage", "prod"], var.environment)
-    error_message = "Environment must be dev, uat, stage, or prod."
-  }
-}
-
-variable "enable_private_endpoint" {
-  description = "Enable private endpoint for Key Vault"
-  type        = bool
-  default     = false
-}
-
-variable "app_service_principal_id" {
-  description = "Principal ID of App Service managed identity for Key Vault access"
-  type        = string
-}
-
 # modules/security/main.tf
 resource "azurerm_key_vault" "main" {
-  name                = "kv-${var.project_name}-${var.environment}"
+  name                = "kv-${var.project_name}-${var.environment}-${var.resource_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  
+  tenant_id           = var.tenant_id
+
   sku_name = "standard"
-  
-  soft_delete_retention_days = 90
-  purge_protection_enabled   = var.environment == "prod"
-  
+
+  # Security settings
+  enabled_for_deployment          = false
+  enabled_for_disk_encryption     = false
+  enabled_for_template_deployment = false
+
+  soft_delete_retention_days = var.soft_delete_retention_days
+  purge_protection_enabled   = var.purge_protection_enabled
+
   enable_rbac_authorization = true
-  
+
   network_acls {
-    default_action = var.enable_private_endpoint ? "Deny" : "Allow"
     bypass         = "AzureServices"
+    default_action = var.enable_private_endpoint ? "Deny" : "Allow"
+    ip_rules       = var.enable_private_endpoint ? [] : var.allowed_ip_ranges
   }
-  
+
   tags = var.tags
 }
 
-# RBAC for App Service
-resource "azurerm_role_assignment" "app_service_secrets" {
+# RBAC for App Service Managed Identity
+resource "azurerm_role_assignment" "app_service_secrets_user" {
+  count = var.app_service_principal_id != null ? 1 : 0
+
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = var.app_service_principal_id
 }
+
+# RBAC for deployment service principal
+resource "azurerm_role_assignment" "deployment_admin" {
+  count = var.deployment_principal_id != null ? 1 : 0
+
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = var.deployment_principal_id
+}
 ```
+
+### Pipeline Parallel: Agent for Pipeline Scaffolding
+
+A coding agent can also scaffold pipeline files:
+```
+@terraform-azure-planning Scaffold a new workflow job for the staging environment:
+- Reuse infrastructure/scripts/terraform-ci.sh
+- Follow cicd.instructions.md Golden Rule (no inline code)
+- Require 'staging' GitHub Environment approval
+- Download plan artifact from plan-stage job
+- Only trigger on release/* branches
+```
+
+The agent generates compliant YAML that delegates to the existing script.
 
 ---
 
@@ -740,20 +794,49 @@ graph TB
 | Diagram | Purpose | Prompt |
 |---------|---------|--------|
 | Architecture | Overall structure | "Generate architecture diagram from main.tf" |
-| Network | VNet topology | "Diagram network module with subnets and NSGs" |
+| Network | VNet topology | "Diagram networking module with 4 subnets and NSGs" |
 | Security | Access flows | "Show authentication and authorization paths" |
 | Data Flow | Request lifecycle | "Diagram API request from user to database" |
-| Deployment | Pipeline stages | "Visualize CI/CD pipeline from azure-pipelines.yml" |
+| Deployment | Pipeline stages | "Visualize CI/CD from terraform.yml and azure-pipelines.yml" |
+
+### Pipeline Parallel: Pipeline Visualization
+
+Ask Copilot to diagram the CI/CD flow:
+```
+Generate a Mermaid diagram showing the deployment pipeline defined in
+.github/workflows/terraform.yml, including:
+- validate job (no Azure creds)
+- plan-dev job (uploads artifact)
+- apply-dev job (requires Environment approval)
+- plan-prod job (manual dispatch only)
+- apply-prod job (production Environment gate)
+- Show artifact flow between plan and apply jobs
+```
+
+```mermaid
+graph TB
+    PUSH[Push to main] --> VALIDATE[validate<br/>fmt + init + validate]
+    VALIDATE --> PLAN_DEV[plan-dev<br/>terraform plan]
+    PLAN_DEV -->|artifact: tfplan-dev| APPLY_DEV[apply-dev<br/>Environment: dev]
+    
+    MANUAL[Manual Dispatch] --> PLAN_PROD[plan-prod<br/>terraform plan]
+    PLAN_PROD -->|artifact: tfplan-prod| APPLY_PROD[apply-prod<br/>Environment: production]
+    
+    style VALIDATE fill:#4CAF50,color:#fff
+    style APPLY_DEV fill:#0078D4,color:#fff
+    style APPLY_PROD fill:#FF5722,color:#fff
+```
 
 ### Exercise: Generate Diagram
 
 Ask Copilot:
 ```
 Generate a Mermaid diagram showing the deployment pipeline defined in 
-azure-pipelines.yml, including:
-- Build stage (backend + frontend)
-- Deploy stage (App Service + Static Web App)
-- Artifact flow between stages
+.github/workflows/terraform.yml and azure-pipelines.yml, including:
+- Terraform validate → plan → apply flow
+- Artifact passing between jobs
+- Environment approval gates
+- Both GitHub Actions and Azure DevOps stages
 ```
 
 ---
@@ -780,39 +863,38 @@ Use this comprehensive CoT prompt in Copilot Chat:
 Think through creating a networking module for the Road Trip Planner step by step:
 
 **Step 1: Understand Environment Requirements**
-- Dev: enable_vnet_integration = false, enable_private_endpoints = false
-- Prod: enable_vnet_integration = true, enable_private_endpoints = true
+- Dev: enable_vnet_integration = false (module not instantiated — count=0 on module call)
+- Prod: enable_vnet_integration = true (full VNet stack)
 
 **Step 2: Design Conditional Logic**
-- If enable_vnet_integration = false → No networking resources created
-- If enable_vnet_integration = true → Full VNet stack
+- Root main.tf: module "networking" { count = local.should_enable_vnet_integration ? 1 : 0 }
+- Inside module: NO count on individual resources (they always exist when module runs)
+- Exception: Container Apps subnet uses count = var.enable_container_apps ? 1 : 0
 
 **Step 3: Plan Resource Hierarchy**
 1. VNet (10.0.0.0/16 for prod)
 2. Subnets:
-   - snet-app (10.0.1.0/24) with App Service delegation
-   - snet-db (10.0.2.0/24)
-   - snet-pe (10.0.3.0/24) for private endpoints
+   - snet-app-${env} (10.0.1.0/24) with Microsoft.Web/serverFarms delegation
+   - snet-db-${env} (10.0.2.0/24) with Microsoft.DBforPostgreSQL/flexibleServers delegation
+   - snet-pe-${env} (10.0.3.0/24) with private_endpoint_network_policies = "Disabled"
+   - snet-ca-${env} (10.0.4.0/23) [conditional] with Microsoft.App/environments delegation
 3. NSGs:
-   - nsg-app: Allow 443 inbound
-   - nsg-db: Allow 5432 from snet-app only
+   - nsg-app: Allow 443+80 inbound, allow 5432 outbound to DB subnet
+   - nsg-db: Allow 5432 from app subnet only, deny all other inbound
+   - nsg-pe: Allow VNet inbound
 4. NSG Associations
 
-**Step 4: Plan Private Endpoint Infrastructure** (if enabled)
-- Private DNS Zone: privatelink.postgres.database.azure.com
-- Private DNS Zone: privatelink.vaultcore.azure.net
+**Step 4: Plan Private DNS** (conditional on enable_private_endpoints)
+- privatelink.postgres.database.azure.com
+- privatelink.vaultcore.azure.net
 - DNS Zone VNet Links
 
 **Step 5: Define Outputs**
-- vnet_id (or null if not created)
-- app_subnet_id (or null)
-- db_subnet_id (or null)
-- pe_subnet_id (or null)
+- vnet_id, vnet_name
+- subnet_app_service_id, subnet_database_id, subnet_private_endpoints_id
+- subnet_container_apps_id (conditional)
 
-Now generate the complete networking module with:
-1. main.tf with all resources using count for conditionals
-2. variables.tf with proper validation
-3. outputs.tf with conditional values
+Now generate the complete networking module.
 ```
 
 #### Step 2: Generate Variables (3 min)
@@ -820,28 +902,27 @@ Now generate the complete networking module with:
 Create `modules/networking/variables.tf`:
 
 ```hcl
-# Ask Copilot to generate based on CoT analysis
-# Expected variables:
-# - enable_vnet_integration (bool)
+# Expected variables (matching our actual module):
+# - vnet_address_space (list(string))
+# - subnet_app_service, subnet_database, subnet_private_endpoints (string CIDRs)
+# - subnet_container_apps (string, default "10.0.4.0/23")
 # - enable_private_endpoints (bool)
-# - vnet_address_space (list)
-# - subnet configurations
+# - enable_container_apps (bool)
 # - project_name, environment, location, resource_group_name
-# - tags
+# - tags (map(string))
 ```
 
 #### Step 3: Generate Main Resources (5 min)
 
 Create `modules/networking/main.tf` with:
-- Conditional VNet
-- Three subnets with proper delegations
-- NSGs with security rules
+- VNet (always created when module is instantiated)
+- Four subnets with proper delegations (app_service, database, private_endpoints, container_apps)
+- NSGs with security rules (app allows 443+80+5432-outbound, db allows 5432 from app subnet only)
 - NSG associations
 
 ```hcl
-# Let Copilot generate based on CoT plan
-# Verify count conditionals are correct:
-# count = var.enable_vnet_integration ? 1 : 0
+# Note: NO count on VNet/subnets — the module itself is conditionally called
+# Only container_apps subnet uses count = var.enable_container_apps ? 1 : 0
 ```
 
 #### Step 4: Generate Outputs (2 min)
@@ -849,12 +930,18 @@ Create `modules/networking/main.tf` with:
 Create `modules/networking/outputs.tf`:
 
 ```hcl
+# Outputs are NOT conditional — the module is always fully instantiated or not at all
 output "vnet_id" {
-  description = "ID of the Virtual Network (null if not created)"
-  value       = var.enable_vnet_integration ? azurerm_virtual_network.main[0].id : null
+  description = "Virtual Network ID"
+  value       = azurerm_virtual_network.main.id
 }
 
-# Continue with subnet outputs...
+output "subnet_app_service_id" {
+  description = "App Service subnet ID"
+  value       = azurerm_subnet.app_service.id
+}
+
+# Continue with database, private_endpoints, container_apps outputs...
 ```
 
 #### Step 5: Validate (2 min)
@@ -867,33 +954,37 @@ terraform validate
 ### Deliverable
 
 Complete networking module with:
-- [ ] `variables.tf` with all inputs
-- [ ] `main.tf` with conditional resources
-- [ ] `outputs.tf` with null-safe values
+- [ ] `variables.tf` with all inputs (including enable_container_apps)
+- [ ] `main.tf` with VNet, 4 subnets, NSGs, associations
+- [ ] `outputs.tf` with direct values (not conditional)
 - [ ] Passes `terraform validate`
-- [ ] Works for both dev (no VNet) and prod (full VNet)
+- [ ] Module called with `count` in root main.tf (dev=0, prod=1)
 
 ### Test Configurations
 
-**Dev Test** (should create no resources):
+**Dev Test** (module NOT instantiated — count=0 on module call):
 ```hcl
+# In root main.tf:
 module "networking" {
   source = "./modules/networking"
-  
-  enable_vnet_integration  = false
-  enable_private_endpoints = false
-  # ...
+  count  = local.should_enable_vnet_integration ? 1 : 0
+  # When enable_vnet_integration = false, this module is never called
 }
 ```
 
-**Prod Test** (should create full stack):
+**Prod Test** (module instantiated with full stack):
 ```hcl
 module "networking" {
   source = "./modules/networking"
+  count  = local.should_enable_vnet_integration ? 1 : 0
   
-  enable_vnet_integration  = true
-  enable_private_endpoints = true
   vnet_address_space       = ["10.0.0.0/16"]
+  subnet_app_service       = "10.0.1.0/24"
+  subnet_database          = "10.0.2.0/24"
+  subnet_private_endpoints = "10.0.3.0/24"
+  subnet_container_apps    = "10.0.4.0/23"
+  enable_private_endpoints = true
+  enable_container_apps    = true
   # ...
 }
 ```
@@ -925,8 +1016,14 @@ module "networking" {
 
 | Resource | Location |
 |----------|----------|
-| Definitions Reference | `docs/workshops/00-copilot-definitions-best-practices.md` |
+| Definitions Reference | `docs/workshops/iac/00-copilot-definitions-best-practices.md` |
 | Custom Agents | `.github/copilot-agents/` |
 | Spec Kit Agents | `.github/agents/` |
 | Networking Module | `infrastructure/terraform/modules/networking/` |
+| Security Module | `infrastructure/terraform/modules/security/` |
+| Terraform CI/CD Workflow | `.github/workflows/terraform.yml` |
+| Terraform CI Script | `infrastructure/scripts/terraform-ci.sh` |
+| Azure DevOps Pipeline | `azure-pipelines.yml` |
+| Terraform Instructions | `.github/instructions/terraform.instructions.md` |
+| CI/CD Instructions | `.github/instructions/cicd.instructions.md` |
 | ROADMAP Issue #24 | Networking module requirements |

@@ -63,10 +63,7 @@ export class ItineraryPage extends BasePage {
     await this.stopSearchInput.press('Enter');
 
     // Wait for geocoding API response
-    await this.page.waitForResponse(
-      (response) => response.url().includes('/api/geocode'),
-      { timeout: TIMEOUTS.GEOCODE_SEARCH }
-    );
+    await this.waitForApi('/api/geocode', TIMEOUTS.GEOCODE_SEARCH);
 
     // Click the first search result to add it as a stop
     await this.page.waitForTimeout(500);
@@ -111,10 +108,7 @@ export class ItineraryPage extends BasePage {
   async calculateRoute(): Promise<void> {
     await this.calculateRouteButton.click();
 
-    await this.page.waitForResponse(
-      (response) => response.url().includes('/api/directions'),
-      { timeout: TIMEOUTS.ROUTE_CALCULATION }
-    );
+    await this.waitForApi('/api/directions', TIMEOUTS.ROUTE_CALCULATION);
 
     // Wait for the UI to update with route info
     await this.page.waitForTimeout(1_000);
@@ -124,10 +118,7 @@ export class ItineraryPage extends BasePage {
   async optimizeRoute(): Promise<void> {
     await this.optimizeButton.click();
 
-    await this.page.waitForResponse(
-      (response) => response.url().includes('/api/optimize'),
-      { timeout: TIMEOUTS.ROUTE_CALCULATION }
-    );
+    await this.waitForApi('/api/optimize', TIMEOUTS.ROUTE_CALCULATION);
   }
 
   /** Get the displayed route distance text */
@@ -152,10 +143,7 @@ export class ItineraryPage extends BasePage {
   /** Click Save Trip button */
   async saveTrip(): Promise<void> {
     await this.saveButton.click();
-    await this.page.waitForResponse(
-      (response) => response.url().includes('/api/trips') && response.request().method() === 'POST',
-      { timeout: TIMEOUTS.TRIP_SAVE }
-    );
+    await this.waitForApi('/api/trips', TIMEOUTS.TRIP_SAVE);
   }
 
   /** Click the login demo button */
@@ -204,9 +192,6 @@ export class ItineraryPage extends BasePage {
   /** Click a POI category button (Gas, Food, Sleep) */
   async searchPOIAlongRoute(category: 'Gas' | 'Food' | 'Sleep'): Promise<void> {
     await this.page.getByText(category, { exact: true }).click();
-    await this.page.waitForResponse(
-      (response) => response.url().includes('/api/search'),
-      { timeout: TIMEOUTS.POI_SEARCH }
-    );
+    await this.waitForApi('/api/search', TIMEOUTS.POI_SEARCH);
   }
 }

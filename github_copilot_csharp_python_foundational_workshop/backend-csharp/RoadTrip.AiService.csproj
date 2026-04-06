@@ -12,4 +12,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
+  <!-- Exclude the sibling test project directory from the main project's compile glob -->
+  <ItemGroup>
+    <Compile Remove="RoadTrip.AiService.Tests/**/*.cs" />
+  </ItemGroup>
+
 </Project>

@@ -1,11 +1,17 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 import { getToken } from '../utils/auth';
 
-// Use localhost for Android Emulator (10.0.2.2) if not specified, or standard localhost for iOS
+// BFF Gateway URL - all API calls go through the BFF (port 3000)
+// The BFF routes to Python (8000), C# (8081), and Java (8082) backends
 const getBaseUrl = () => {
-    if (process.env.VITE_API_URL) return process.env.VITE_API_URL;
-    // Fallback logic could be added here if needed
-    return 'http://localhost:8000';
+    // Local development - use appropriate localhost for platform
+    if (Platform.OS === 'android') {
+        // Android emulator uses 10.0.2.2 to reach host machine
+        return 'http://10.0.2.2:3000';
+    }
+    // iOS simulator and web can use localhost directly
+    return 'http://localhost:3000';
 };
 
 const api = axios.create({
