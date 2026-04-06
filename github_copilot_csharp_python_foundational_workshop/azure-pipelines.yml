@@ -10,6 +10,7 @@ trigger:
     include:
       - backend/*
       - frontend/*
+      - infrastructure/terraform/*
       - azure-pipelines.yml
 
 variables:
@@ -23,6 +24,85 @@ variables:
   # - AZURE_SUBSCRIPTION (service connection name)
 
 stages:
+  # ============================================================================
+  # TERRAFORM PLAN STAGE (Dev)
+  # ============================================================================
+  - stage: TerraformPlan_Dev
+    displayName: 'Terraform Plan (Dev)'
+    condition: |
+      or(
+        contains(variables['Build.SourceVersionMessage'], '[terraform]'),
+        eq(variables['Build.Reason'], 'Manual')
+      )
+    jobs:
+      - job: TerraformValidateAndPlan
+        displayName: 'Validate & Plan Terraform (Dev)'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.7.0'
+            displayName: 'Install Terraform 1.7.0'
+
+          - task: AzureCLI@2
+            displayName: 'Terraform Plan (Dev)'
+            inputs:
+              azureSubscription: '$(AZURE_SUBSCRIPTION)'
+              scriptType: 'bash'
+              scriptPath: 'infrastructure/scripts/terraform-ci.sh'
+              arguments: '--action plan --environment dev'
+            env:
+              TF_VAR_mapbox_token: $(MAPBOX_TOKEN)
+              TF_VAR_google_client_id: $(GOOGLE_CLIENT_ID)
+
+          - publish: 'infrastructure/terraform/tfplan-dev.out'
+            artifact: terraform-plan-dev
+            displayName: 'Publish Terraform Plan'
+
+  # ============================================================================
+  # TERRAFORM APPLY STAGE (Dev) — Manual approval required
+  # ============================================================================
+  - stage: TerraformApply_Dev
+    displayName: 'Terraform Apply (Dev)'
+    dependsOn: TerraformPlan_Dev
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'Manual'))
+    jobs:
+      - deployment: ApplyTerraform
+        displayName: 'Apply Terraform Changes (Dev)'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: 'terraform-dev'      # Create in Azure DevOps with approval gate
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: TerraformInstaller@1
+                  inputs:
+                    terraformVersion: '1.7.0'
+                  displayName: 'Install Terraform 1.7.0'
+
+                - download: current
+                  artifact: terraform-plan-dev
+                  displayName: 'Download Terraform Plan'
+
+                - script: |
+                    cp $(Pipeline.Workspace)/terraform-plan-dev/tfplan-dev.out infrastructure/terraform/tfplan-dev.out
+                  displayName: 'Restore plan file'
+
+                - task: AzureCLI@2
+                  displayName: 'Terraform Apply (Dev)'
+                  inputs:
+                    azureSubscription: '$(AZURE_SUBSCRIPTION)'
+                    scriptType: 'bash'
+                    scriptPath: 'infrastructure/scripts/terraform-ci.sh'
+                    arguments: '--action apply --environment dev'
+                  env:
+                    TF_VAR_mapbox_token: $(MAPBOX_TOKEN)
+                    TF_VAR_google_client_id: $(GOOGLE_CLIENT_ID)
+
   # ============================================================================
   # BUILD AND TEST STAGE
   # ============================================================================

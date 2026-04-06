@@ -71,3 +71,13 @@ output "private_dns_zone_keyvault_name" {
   description = "Key Vault Private DNS Zone name"
   value       = var.enable_private_endpoints ? azurerm_private_dns_zone.keyvault[0].name : null
 }
+
+output "subnet_container_apps_id" {
+  description = "Container Apps subnet ID"
+  value       = var.enable_container_apps ? azurerm_subnet.container_apps[0].id : null
+}
+
+output "subnet_container_apps_name" {
+  description = "Container Apps subnet name"
+  value       = var.enable_container_apps ? azurerm_subnet.container_apps[0].name : null
+}

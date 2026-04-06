@@ -40,6 +40,12 @@ output "app_service_default_hostname" {
   value       = azurerm_linux_web_app.backend.default_hostname
 }
 
+# Alias for app_service_default_hostname (for consistency)
+output "app_service_fqdn" {
+  description = "App Service FQDN (alias for default_hostname)"
+  value       = azurerm_linux_web_app.backend.default_hostname
+}
+
 output "app_service_identity_principal_id" {
   description = "App Service Managed Identity Principal ID"
   value       = azurerm_linux_web_app.backend.identity[0].principal_id

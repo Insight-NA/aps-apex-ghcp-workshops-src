@@ -91,6 +91,6 @@ export class TripsPage extends BasePage {
 
   /** Assert a specific trip name does NOT appear in the list */
   async expectTripNotExists(name: string): Promise<void> {
-    await expect(this.getTripByName(name)).toBeHidden();
+    await expect(this.getTripByName(name)).not.toBeVisible();
   }
 }

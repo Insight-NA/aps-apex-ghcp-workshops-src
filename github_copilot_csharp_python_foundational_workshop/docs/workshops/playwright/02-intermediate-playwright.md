@@ -1,6 +1,6 @@
 # Workshop 2: Intermediate Playwright Testing with GitHub Copilot
 
-**Duration**: 90 minutes  
+**Duration**: 100 minutes  
 **Format**: Live coding demonstrations  
 **Audience**: Test engineers / developers with Copilot foundational knowledge (completed Workshop 1)  
 **Prerequisites**: VS Code with GitHub Copilot + Playwright Test extensions, Docker Compose stack running, Playwright browsers installed (see `docs/workshops/playwright/setup/00-setup-instructions.md`)
@@ -11,14 +11,15 @@
 
 By the end of this workshop, you will be able to:
 
-1. **Inline Code Suggestions & NES** — Accept ghost text and Next Edit Suggestions when writing Page Object Models and test specs
-2. **CORE Framework Prompting** — Write structured prompts using **C**ontext → **O**bjective → **R**equest → **E**xpectation that generate accurate, project-aware Playwright tests
-3. **Comment-Based Generation** — Generate complete test cases from descriptive comments placed above test functions
-4. **Code Explanations** — Use Ask mode to understand complex test infrastructure (auth caching, fixtures, global setup)
-5. **Code Refactoring** — Use Agent mode to extract duplicate patterns across Page Object Models into shared utilities
-6. **Few-Shot Prompting** — Teach Copilot your POM patterns by showing examples before requesting new Page Objects
-7. **Test Generation & Debugging** — Generate test suites and debug flaky tests with Copilot
-8. **Copilot CLI** — Generate Playwright commands, codegen invocations, and CI pipeline snippets from natural language
+1. [**Inline Code Suggestions & NES**](#demo-1-inline-code-suggestions--next-edit-suggestions-10-min) — Accept ghost text and Next Edit Suggestions when writing Page Object Models and test specs
+2. [**CORE Framework Prompting**](#demo-2-core-framework-prompting-15-min) — Write structured prompts using **C**ontext → **O**bjective → **R**equest → **E**xpectation that generate accurate, project-aware Playwright tests
+3. [**Comment-Based Generation**](#demo-3-comment-based-generation-10-min) — Generate complete test cases from descriptive comments placed above test functions
+4. [**Code Explanations**](#demo-4-code-explanations-with-ask-mode-10-min) — Use Ask mode to understand complex test infrastructure (auth caching, fixtures, global setup)
+5. [**Code Refactoring**](#demo-5-code-refactoring-with-agent-mode-10-min) — Use Agent mode to extract duplicate patterns across Page Object Models into shared utilities
+6. [**Few-Shot Prompting**](#demo-6-few-shot-prompting-10-min) — Teach Copilot your POM patterns by showing examples before requesting new Page Objects
+7. [**Test Generation & Debugging**](#demo-7-test-generation--debugging-15-min) — Generate test suites and debug flaky tests with Copilot
+8. [**Copilot CLI**](#demo-8-copilot-cli-10-min) — Generate Playwright commands, codegen invocations, and CI pipeline snippets from natural language
+9. [**Playwright Test Agents**](#demo-9-playwright-test-agents-10-min) — Initialize Playwright's native AI agent definitions (`init-agents`) and combine them with Copilot Agent mode for automated test planning, generation, and self-healing
 
 ---
 
@@ -66,6 +67,22 @@ GitHub Copilot in VS Code uses three built-in modes instead of slash commands:
 
 ---
 
+## Breaking Changes to Know (Playwright v1.42–v1.58)
+
+> ⚠️ **Before writing or reviewing Playwright tests, be aware of these changes introduced after Playwright v1.42:**
+>
+> | Change | Version | Impact |
+> |--------|---------|--------|
+> | **Tag object syntax** — `{ tag: ['@smoke'] }` replaces `@tag` in test titles | v1.42 | All test/describe signatures in this workshop use the new syntax |
+> | **`_react` and `_vue` selectors removed** — use `getByRole`, `getByTestId` | v1.58 | Copilot may suggest these; reject them |
+> | **`:light` selector suffix removed** — use standard CSS | v1.58 | Old selector strings will throw |
+> | **`page.accessibility` removed** — use Axe or `toMatchAriaSnapshot()` | v1.57 | Accessibility assertions require different approach |
+> | **`locator.type()` deprecated** — use `locator.fill()` | v1.50+ | Copilot inline suggestions may still generate `.type()`; prefer `.fill()` |
+> | **`-gv` flag removed** — use `--grep-invert` | v1.54 | Update CI scripts accordingly |
+> | **Chrome for Testing** replaces raw Chromium in headed mode | v1.57 | New browser icon/title in toolbar — no functional change |
+
+---
+
 ## Workshop Agenda
 
 | Time | Demo | Learning Objective | File(s) |
@@ -78,6 +95,7 @@ GitHub Copilot in VS Code uses three built-in modes instead of slash commands:
 | 55-65 min | Demo 6 | **Few-Shot Prompting** | New: `e2e/pages/LoginPage.ts` |
 | 65-80 min | Demo 7 | **Test Generation & Debugging** | New: `e2e/tests/auth/login-logout.spec.ts`, `demo-04-flaky.spec.ts` |
 | 80-90 min | Demo 8 | **Copilot CLI** | Terminal |
+| 90-100 min | Demo 9 | **Playwright Test Agents** | Terminal |
 
 > **All file paths are relative to `frontend/`** unless stated otherwise.
 
@@ -172,7 +190,35 @@ code frontend/e2e/pages/ItineraryPage.ts
 | See alternatives | `Alt+]` / `Alt+[` | `Alt+]` / `Alt+[` |
 | Jump to next edit (NES) | `Tab` (on gutter arrow) | `Tab` (on gutter arrow) |
 
+### Pro Tips: Modern Locator Patterns (v1.50–v1.53)
+
+> 🆕 **`locator.describe('label')` (v1.53) — Name locators for readable traces**
+>
+> Add `.describe()` to POM locator declarations so the Playwright trace viewer shows a human-readable label instead of the raw CSS selector. Copilot will suggest this when you write JSDoc comments above the locator:
+>
+> ```typescript
+> // Before: trace viewer shows '[class*="border rounded-xl"]'
+> this.poiResults = this.page.locator('[class*="border rounded-xl"]');
+>
+> // After: trace viewer shows 'POI result card'
+> this.poiResults = this.page.locator('[class*="border rounded-xl"]').describe('POI result card');
+> ```
+
+> 🆕 **`locator.filter({ visible: true })` (v1.51) — Filter out hidden elements**
+>
+> When multiple elements match a locator (e.g., collapsed and expanded states), filter by visibility to avoid strict-mode violations:
+>
+> ```typescript
+> // Instead of .first() which is positional,
+> // filter to the visible instance:
+> const visibleResult = page.locator('[data-testid="result-card"]').filter({ visible: true });
+> await expect(visibleResult).toBeVisible();
+> ```
+>
+> In POMs, NES will suggest adding `{ visible: true }` after you encounter a strict-mode error.
+
 ### Common Mistakes
+
 - ❌ **Accepting methods without verifying locators**: Always check that the generated CSS selectors match actual app structure
 - ❌ **Ignoring import needs**: New methods using `expect` require it imported from `@playwright/test`
 - ❌ **Missing NES arrows**: Watch for gutter decorations — they save multi-file edits when adding POM methods
@@ -223,7 +269,7 @@ Create `frontend/e2e/tests/explore/category-search.spec.ts` and paste this CORE 
  *
  * REQUEST:
  * 1. Import `test` and `expect` from `../../fixtures/base.fixture`
- * 2. Create a `test.describe` with tag `@regression`
+ * 2. Create a `test.describe` using Playwright's tag object syntax: `{ tag: ['@regression'] }`
  * 3. Test case EXP-01: navigates to /explore via explorePage.goto()
  * 4. Assert category pills visible via explorePage.expectCategoriesVisible()
  * 5. Click "Places to Camp" category pill
@@ -245,7 +291,7 @@ Create `frontend/e2e/tests/explore/category-search.spec.ts` and paste this CORE 
 ```typescript
 import { test, expect } from '../../fixtures/base.fixture';
 
-test.describe('Explore Category Search @regression', () => {
+test.describe('Explore Category Search', { tag: ['@regression'] }, () => {
   test('EXP-01: Category pill search returns results', async ({ explorePage, page }) => {
     // Navigate to explore page
     await explorePage.goto();
@@ -299,6 +345,26 @@ test.describe('Explore Category Search @regression', () => {
 > - **Request** eliminates guesswork — Copilot knows the exact steps and file conventions
 > - **Expectation** enforces quality gates — no `waitForTimeout`, no raw selectors, proper error messages
 
+### Bonus: Aria Snapshot Assertions (v1.49)
+
+> 🆕 **`toMatchAriaSnapshot()` — structural accessibility-tree validation**
+>
+> Instead of asserting individual elements one-by-one, `toMatchAriaSnapshot()` validates the whole accessible structure of a page region in one assertion. This is especially powerful when validating that complex UI sections render correctly:
+>
+> ```typescript
+> // After clicking a category pill and waiting for results:
+> await expect(page.locator('[data-testid="results-list"]')).toMatchAriaSnapshot(`
+>   - list:
+>     - listitem:
+>       - heading /Places to Camp/
+>       - button "Add to Trip"
+> `);
+> ```
+>
+> **CORE prompt to generate this**: "Use `toMatchAriaSnapshot()` to validate that the explore results list renders with headings and 'Add to Trip' buttons for each result."
+>
+> **When to use**: Prefer `toMatchAriaSnapshot()` for structural UI validation. Use individual assertions (`toBeVisible`, `toHaveText`) for specific element states.
+
 ---
 
 ## Demo 3: Comment-Based Generation (10 min)
@@ -335,12 +401,12 @@ code frontend/e2e/tests/navigation/sidebar-nav.spec.ts
 
 **Step 2: Press Enter and type the test signature**
 ```typescript
-  test('RSP-01: Mobile bottom nav renders and navigates @mobile @regression', async ({ browser }) => {
+  test('RSP-01: Mobile bottom nav renders and navigates', { tag: ['@mobile', '@regression'] }, async ({ browser }) => {
 ```
 
 **Expected Copilot Suggestion** (completes the test):
 ```typescript
-  test('RSP-01: Mobile bottom nav renders and navigates @mobile @regression', async ({ browser }) => {
+  test('RSP-01: Mobile bottom nav renders and navigates', { tag: ['@mobile', '@regression'] }, async ({ browser }) => {
     // Create mobile context with Pixel 5 viewport
     const context = await browser.newContext({
       ...devices['Pixel 5'],
@@ -400,7 +466,27 @@ code frontend/e2e/tests/navigation/sidebar-nav.spec.ts
 > 2. **Specify the device/viewport** — Playwright has dozens of device presets
 > 3. **Describe the UI behavior** (sidebar hidden, bottom nav visible) — Copilot can't infer responsive breakpoints
 > 4. **List the assertion steps** — prevents Copilot from generating incomplete tests
-> 5. **Include tags** (`@mobile @regression`) — Copilot adds them to the test title for `--grep` filtering
+> 5. **Include tags** (`@mobile @regression`) — Copilot generates `{ tag: ['@mobile', '@regression'] }` in the test signature (new v1.42 object syntax; use `--grep @mobile` to filter)
+
+> 🆕 **`test.step()` for trace readability (v1.50)**
+>
+> Long tests are easier to debug in the trace viewer when key phases are wrapped in `test.step()`. The healer agent (Demo 9) uses step names to pinpoint repair locations:
+>
+> ```typescript
+> test('RSP-01: Mobile bottom nav renders and navigates', { tag: ['@mobile', '@regression'] }, async ({ browser }) => {
+>   await test.step('Set up mobile context', async () => {
+>     // browser.newContext + page.goto
+>   });
+>   await test.step('Assert sidebar hidden and bottom nav visible', async () => {
+>     // visibility assertions
+>   });
+>   await test.step('Navigate via mobile nav items', async () => {
+>     // click + waitForURL assertions
+>   });
+> });
+> ```
+>
+> Use `test.step.skip()` (v1.50) to disable a step during debugging without removing it.
 
 ---
 
@@ -849,18 +935,18 @@ Request: Create e2e/tests/auth/login-logout.spec.ts with:
    - Navigate to /itinerary, switch to Trips tab, click "Login with Google (Demo)"
    - Assert localStorage has 'token' key
    - Assert "Secure" badge becomes visible
-   - Tag: @auth @smoke
+   - Tag: `{ tag: ['@auth', '@smoke'] }`
 2. AUTH-02: Logout clears session data
    - Use authenticatedPage fixture (pre-logged-in state)
    - Assert initially logged in (token exists)
    - Click logout button
    - Assert localStorage no longer has 'token'
    - Assert "Login with Google (Demo)" button reappears
-   - Tag: @auth @regression
+   - Tag: `{ tag: ['@auth', '@regression'] }`
 3. AUTH-03: Auth status shows user email when logged in
    - Use authenticatedPage fixture
    - Assert user email is visible in the auth status component
-   - Tag: @auth @regression
+   - Tag: `{ tag: ['@auth', '@regression'] }`
 
 Expectation: Tests are independent (no test depends on another). Login test uses 
 fresh context (no storageState). Logout test uses pre-authenticated context. 
@@ -872,7 +958,7 @@ All waits use waitForFunction or expect with timeout — never waitForTimeout.
 import { test as base, expect } from '@playwright/test';
 import { test as authTest } from '../../fixtures/auth.fixture';
 
-base.describe('Auth Login @auth @smoke', () => {
+base.describe('Auth Login', { tag: ['@auth', '@smoke'] }, () => {
   base('AUTH-01: Dev login sets token in localStorage', async ({ page }) => {
     await page.goto('/itinerary', { waitUntil: 'domcontentloaded' });
 
@@ -900,7 +986,7 @@ base.describe('Auth Login @auth @smoke', () => {
   });
 });
 
-authTest.describe('Auth Logout @auth @regression', () => {
+authTest.describe('Auth Logout', { tag: ['@auth', '@regression'] }, () => {
   authTest('AUTH-02: Logout clears session data', async ({ authenticatedPage }) => {
     await authenticatedPage.goto('/itinerary', { waitUntil: 'domcontentloaded' });
 
@@ -1013,6 +1099,9 @@ a specific condition (API response, element state, function evaluation).
 > | `nth-child(N)` for dynamic content | `toHaveCount(N)` or filter by text | "Replace positional selector with count assertion" |
 > | Magic numbers | Import from `TIMEOUTS` constant | "Replace hardcoded timeout with named constant" |
 > | No API waits after user action | `waitForResponse(url)` before assertions | "Add API wait between action and assertion" |
+> | Overlay/modal blocking interaction | `locator.or()` + `page.addLocatorHandler()` to auto-dismiss | "Handle dialog overlay with `page.addLocatorHandler`" |
+
+> 🆕 **Speedboard in HTML Reporter (v1.58)**: When using merged reports, the HTML reporter now includes a **Timeline/Speedboard** tab to visualize test execution timing. Run `npx playwright show-report` and click the **Timeline** tab to identify the slowest tests in your suite — ask Copilot to suggest `test.describe.parallel()` for suites that can run concurrently.
 
 ---
 
@@ -1147,7 +1236,10 @@ npx playwright show-trace frontend/e2e/test-results/smoke-App-Loads-SM-01/trace.
 > | "Show last test run report" | `npx playwright show-report frontend/playwright-report` |
 > | "Run specific test file with verbose output" | `npx playwright test app-loads.spec.ts --reporter=list` |
 > | "Update Playwright browsers to latest" | `npx playwright install --with-deps` |
+> | "Run only tests that failed last time" | `npx playwright test --last-failed` |
 > | "Debug a single test step by step" | `npx playwright test -g "SM-01" --debug` |
+
+> 🆕 **Chrome for Testing (v1.57)**: Playwright now uses **Chrome for Testing** (not raw Chromium) in headed mode. The browser icon and title in your OS taskbar will look different — but tests run identically. No configuration change required.
 
 ### Copilot CLI Modes
 
@@ -1156,6 +1248,147 @@ npx playwright show-trace frontend/e2e/test-results/smoke-App-Loads-SM-01/trace.
 | **Interactive** | `copilot` | Multi-turn Q&A about Playwright commands |
 | **Programmatic** | `copilot -m "..."` | Single-shot command generation for scripts |
 | **Plan mode** | `Shift+Tab` (in interactive) | Multi-step CI/CD pipeline generation |
+
+---
+
+## Demo 9: Playwright Test Agents (10 min)
+
+### Learning Objective
+Use Playwright's native AI agent definitions (`npx playwright init-agents`) to automate test planning, generation, and self-healing — then connect them to GitHub Copilot's Agent mode for a seamless AI-assisted testing workflow.
+
+### What Are Playwright Test Agents?
+
+> 🆕 **New in Playwright v1.56** — Three purpose-built AI agent definitions for agentic testing loops:
+>
+> | Agent | Role | Copilot Mode Equivalent |
+> |-------|------|------------------------|
+> | 🎭 **planner** | Explores the app, produces a Markdown test plan | Plan mode |
+> | 🎭 **generator** | Transforms the Markdown plan into Playwright spec files | Agent mode |
+> | 🎭 **healer** | Executes tests and automatically repairs failing ones | Agent mode (with error context) |
+>
+> These agents encode Playwright's own best practices (locator priority, API waits, fixture usage) directly into agent prompt files — giving Copilot structured context it would otherwise need to infer from your project.
+
+### Before Demo: Setup
+```bash
+# Generate Playwright agent definitions for VS Code / GitHub Copilot
+npx playwright init-agents --loop=vscode
+
+# This creates three agent files in your project:
+# .github/playwright-planner.md
+# .github/playwright-generator.md
+# .github/playwright-healer.md
+```
+
+### Live Coding Steps
+
+**Step 1: Initialize Playwright agents for VS Code**
+```bash
+cd frontend
+npx playwright init-agents --loop=vscode
+```
+Inspect the three generated `.md` files — they contain structured instructions for each agentic loop, encoding Playwright's best practices (ARIA-first locators, `waitForResponse` patterns, fixture usage) as agent context.
+
+**Step 2: Use the planner agent with Copilot**
+
+Open Copilot Chat in **Agent mode** (`⌃⌘I` / `Ctrl+Alt+I`), attach `#file:.github/playwright-planner.md`, then type:
+
+```
+Use the planner instructions to explore the Explore page at localhost:5173/explore.
+Produce a Markdown test plan for the category pill search flow and the text search flow.
+```
+
+**Expected Copilot Output** (Markdown test plan):
+```markdown
+## Test Plan: Explore Page Search Flows
+
+### TC-01: Category Pill Search
+- URL: /explore
+- Preconditions: Docker Compose stack running
+- Steps:
+  1. Navigate to /explore
+  2. Verify category pill buttons are visible
+  3. Click "Places to Camp" pill
+  4. Wait for GET /api/search response (status 200)
+  5. Assert ≥1 result card is visible
+  6. Assert first result has non-empty name
+- Expected: Results render with names and "Add to Trip" buttons
+
+### TC-02: Text Search
+- URL: /explore
+- Steps:
+  1. Navigate to /explore
+  2. Type "Grand Canyon" in the search input
+  3. Wait for GET /api/search response
+  4. Assert ≥1 result card is visible
+...
+```
+
+**Step 3: Use the generator agent**
+
+Attach `#file:.github/playwright-generator.md` and the Markdown plan from Step 2:
+
+```
+Use the generator instructions to convert the TC-01 plan into a Playwright spec file.
+Use the ExplorePage POM at e2e/pages/ExplorePage.ts and the base.fixture.ts fixtures.
+Output to e2e/tests/explore/category-search-agents.spec.ts.
+```
+
+Compare this output to what you produced manually in Demo 2 — the agents produce structurally identical tests because they encode the same locator and wait patterns taught in this workshop.
+
+**Step 4: Use the healer agent**
+
+After running tests and getting a failure, attach `#file:.github/playwright-healer.md` plus the failed test output:
+
+```
+Use the healer instructions to analyze this test failure and repair the failing locator:
+
+Error: locator('.mapboxgl-marker:nth-child(3)').click() failed —
+  strict mode violation, 2 elements matched
+```
+
+**Expected healer output** — corrects the locator to follow Playwright best practices:
+```typescript
+// Before (healer identifies: nth-child is fragile)
+await page.locator('.mapboxgl-marker:nth-child(3)').click();
+
+// After (healer fix: assert count before accessing by index)
+await expect(page.locator('.mapboxgl-marker')).toHaveCount(2, { timeout: 10_000 });
+await page.locator('.mapboxgl-marker').first().click();
+```
+
+### Playwright Agents vs. Manual CORE Prompts
+
+| Approach | Context Source | Best For |
+|----------|---------------|----------|
+| **CORE Prompt** (Demos 2–7) | You write context in the prompt | Custom project-specific flows |
+| **Playwright Test Agents** (Demo 9) | Pre-built Playwright best practices | Bootstrapping new test suites |
+| **Combined** | Agent file + CORE context | Production-grade test generation |
+
+### Teaching Points
+
+> 🤖 **Key Insight**: Playwright Test Agents encode the same principles taught in this workshop (ARIA-first locators, `waitForResponse`, POM patterns, fixture usage) into structured agent prompt files. When you attach them to Copilot Agent mode, you get Playwright expertise baked into every generated test — without re-explaining your project conventions every time.
+>
+> **Recommended workflow:**
+> 1. Run `npx playwright init-agents --loop=vscode` once per project to create the agent files
+> 2. Use the **planner** agent when starting a new test area (generates structured Markdown plans)
+> 3. Use the **generator** agent to convert plans to spec files (bootstraps test suites)
+> 4. Use the **healer** agent when tests fail in CI (auto-repairs broken locators)
+> 5. Use **CORE prompts** (Demos 2–7) for iterative development and project-specific patterns
+
+### CLI Reference
+```bash
+# Initialize for VS Code (GitHub Copilot)
+npx playwright init-agents --loop=vscode
+
+# Initialize for Claude Code
+npx playwright init-agents --loop=claude
+
+# Initialize for opencode
+npx playwright init-agents --loop=opencode
+
+# View generated agent files
+ls .github/playwright-*.md
+```
 
 ---
 
@@ -1175,6 +1408,7 @@ npx playwright show-trace frontend/e2e/test-results/smoke-App-Loads-SM-01/trace.
 | **Test Generation** | Full test suites from CORE prompts | Agent mode | Auth test suite (AUTH-01..03) |
 | **Debugging** | Flaky test diagnosis | Inline chat + `#selection` | 5 bugs in demo-04-flaky.spec.ts |
 | **CLI** | Commands, codegen, CI pipelines | `copilot` (standalone) | Run tests, generate reports |
+| **Playwright Test Agents** | Bootstrapping new test suites | `npx playwright init-agents` + Agent mode | Demo 9 |
 
 ### Quick Reference Card
 
@@ -1219,6 +1453,14 @@ npx playwright show-trace frontend/e2e/test-results/smoke-App-Loads-SM-01/trace.
 │   copilot              Interactive mode                      │
 │   copilot -m "..."     Programmatic (single-shot)            │
 │   Shift+Tab            Plan mode (in interactive)            │
+├─────────────────────────────────────────────────────────────┤
+│ PLAYWRIGHT TEST AGENTS (v1.56)                               │
+│   npx playwright init-agents --loop=vscode  VS Code setup    │
+│   .github/playwright-planner.md   Exploration → test plan   │
+│   .github/playwright-generator.md Plan → spec files         │
+│   .github/playwright-healer.md    Failures → auto-repair     │
+│ NEW CLI FLAGS                                                │
+│   --last-failed    Re-run only tests that failed last time   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -1234,6 +1476,8 @@ npx playwright show-trace frontend/e2e/test-results/smoke-App-Loads-SM-01/trace.
 | Assertions in POMs | Violates separation of concerns | "Move assertions to spec file, return data from POM" |
 | Hardcoded timeout numbers | Unmaintainable magic numbers | "Import from `TIMEOUTS` constant in test-data.ts" |
 | Missing global teardown | Test data accumulates in database | "Use `global-teardown.ts` with `deleteTestTrips()`" |
+| `_react=` / `_vue=` selectors | **Removed in v1.58** — these engine selectors no longer work | "Replace with `getByRole`, `getByText`, or `getByTestId`" |
+| `locator.type()` calls | Deprecated — use `locator.fill()` or `locator.pressSequentially()` | "Replace `locator.type()` with `locator.fill()`" |
 
 ### Common Mistakes to Avoid
 
@@ -1247,6 +1491,8 @@ npx playwright show-trace frontend/e2e/test-results/smoke-App-Loads-SM-01/trace.
 | Skipping test verification after generation | Always run `npm run test:e2e:chromium` to verify |
 | Using Agent mode for simple questions | Use Ask mode for understanding, Agent for modifications |
 | Not reviewing Agent mode diffs before accepting | Use checkpoints to rollback bad changes |
+| Confusing Chrome for Testing with Chromium | They're the same for test purposes — Chrome for Testing replaced raw Chromium in headed mode (v1.57), no config change needed |
+| Ignoring `--last-failed` after a test run | Re-run only failed tests first to iterate faster: `npx playwright test --last-failed` |
 
 ---
 
@@ -1302,6 +1548,7 @@ npm run test:e2e:report
 **Workshop 3: Advanced Playwright Testing with Copilot**
 - **Custom Instructions**: Using `.github/copilot-instructions.md` for Playwright-specific context
 - **Custom Agents**: Building `@playwright-tester` agent for specialized test generation
+- **Playwright Test Agents deep dive**: Multi-project healing loops and custom agent configurations for CI self-repair
 - **MCP Servers**: Connecting to Playwright's trace viewer and test results APIs
 - **Visual Regression Testing**: Screenshot comparison with `toHaveScreenshot()`
 - **API Testing**: Using Playwright's `request` context for backend API validation
@@ -1321,11 +1568,14 @@ npm run test:e2e:report
 - **Playwright Documentation**: https://playwright.dev/docs/intro
 - **Playwright Best Practices**: https://playwright.dev/docs/best-practices
 - **Playwright Locators Guide**: https://playwright.dev/docs/locators
+- **Playwright Aria Snapshots**: https://playwright.dev/docs/aria-snapshots
+- **Playwright Test Agents**: https://playwright.dev/docs/test-agents
 - **Playwright Auth Guide**: https://playwright.dev/docs/auth
 - **Playwright CI Guide**: https://playwright.dev/docs/ci-intro
 - **Playwright Test Fixtures**: https://playwright.dev/docs/test-fixtures
 - **Playwright Page Object Models**: https://playwright.dev/docs/pom
 - **Playwright Codegen**: https://playwright.dev/docs/codegen-intro
+- **Playwright Release Notes**: https://playwright.dev/docs/release-notes
 - **GitHub Copilot Docs**: https://docs.github.com/en/copilot
 - **Copilot Chat Modes**: https://code.visualstudio.com/docs/copilot/copilot-chat
 - **Copilot CLI**: https://docs.github.com/en/copilot/copilot-cli

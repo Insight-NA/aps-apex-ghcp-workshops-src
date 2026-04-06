@@ -1,5 +1,5 @@
 // Version information injected at build time
-export const APP_VERSION = '1.2.0';
+export const APP_VERSION = '1.3.0';
 export const BUILD_TIMESTAMP = import.meta.env.VITE_BUILD_TIMESTAMP || new Date().toISOString();
 
 export function getVersionInfo(): string {

@@ -40,27 +40,62 @@ Copilot provides real-time inline suggestions as you type in Terraform files. Un
 
 ### Live Demo: Typing Flow
 
+From our actual `modules/compute/main.tf` — observe how Copilot auto-completes:
 ```hcl
 # Start typing and observe suggestions at each point:
 
-resource "azurerm_linux_web_app" "main" {
-  # After typing 'name = "' Copilot suggests based on naming patterns
-  name                = "app-roadtrip-${var.environment}"
+resource "azurerm_linux_web_app" "backend" {
+  # After typing 'name = "' Copilot suggests naming pattern with suffix
+  name                = "app-${var.project_name}-api-${var.environment}-${var.resource_suffix}"
   
-  # After typing 'resource_group' Copilot knows the reference pattern
-  resource_group_name = azurerm_resource_group.main.name
+  # After typing 'resource_group' Copilot references the variable
+  resource_group_name = var.resource_group_name
   
-  # After typing 'service_plan' Copilot references existing plans
+  # After typing 'service_plan' Copilot references the service plan
   service_plan_id     = azurerm_service_plan.main.id
   
-  # After opening site_config block, Copilot suggests common attributes
+  # Type 'https' and Copilot suggests security setting
+  https_only = true
+  
+  # After opening identity block, Copilot suggests managed identity
+  identity {
+    type = "SystemAssigned"
+  }
+  
+  # After typing 'virtual_network' Copilot suggests the conditional pattern
+  virtual_network_subnet_id = var.enable_vnet_integration ? var.app_service_subnet_id : null
+  
+  # After opening site_config, Copilot auto-completes security settings
   site_config {
-    # Type 'application_stack' and see language-specific suggestions
     application_stack {
-      python_version = "3.12"
+      python_version = var.python_version
     }
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 5
+    minimum_tls_version = "1.2"
+    ftps_state          = "Disabled"
   }
 }
+```
+
+### Pipeline Parallel: Inline YAML Suggestions
+
+The same inline experience works in workflow YAML. Start typing:
+```yaml
+# In .github/workflows/terraform.yml, type a step and observe:
+
+- name: Setup Terraform
+  uses: hashicorp/  # Copilot suggests: setup-terraform@v3
+  with:
+    terraform_  # Copilot suggests: version: '1.7.0'
+
+- name: Azure Login
+  uses: azure/  # Copilot suggests: login@v2
+  with:
+    creds: ${{ secrets.  # Copilot suggests: AZURE_CREDENTIALS }}
+
+- name: Terraform Plan
+  run: ./infrastructure/scripts/  # Copilot suggests: terraform-ci.sh
 ```
 
 ### Pro Tips
@@ -70,6 +105,7 @@ resource "azurerm_linux_web_app" "main" {
 3. **Arrow keys** - Navigate alternative suggestions
 4. **Tab** - Accept current suggestion
 5. **Escape** - Dismiss and type manually
+6. **In YAML**: Type `uses:` and a space for action suggestions
 
 ### Exercise: Trigger Exploration
 
@@ -125,17 +161,48 @@ Result: Generic configuration, wrong naming, no security settings
 ```hcl
 # Create Azure PostgreSQL Flexible Server for the Road Trip Planner backend
 # Requirements:
-# - Environment-aware naming: psql-roadtrip-${var.environment}
+# - Environment-aware naming: psql-${var.project_name}-${var.environment}-${var.resource_suffix}
 # - SKU from variable: var.database_sku (B_Standard_B1ms for dev)
 # - Storage: var.database_storage_mb (32GB for dev)
 # - PostgreSQL version 16
-# - Backup retention: 7 days for dev, 35 days for prod
-# - Public access: enabled for dev, disabled for prod (use private endpoint)
-# - Admin credentials: generate random password, store in Key Vault
+# - Backup retention: var.backup_retention_days (7 dev, 35 prod)
+# - VNet integration: conditional on var.enable_private_endpoint
+# - Dynamic high_availability block (ZoneRedundant for prod only)
+# - Maintenance window: Sunday 2-4 AM
+# - Lifecycle: prevent_destroy=false, ignore administrator_password changes
 
 resource "azurerm_postgresql_flexible_server" "main" {
   # Copilot generates based on structured requirements...
 }
+```
+
+Compare to our actual `modules/database/main.tf` — the structured prompt should produce code matching the real implementation.
+
+### Pipeline Parallel: Prompting for Pipeline Steps
+
+The same structured prompting works for pipeline actions:
+```yaml
+# Prompt:
+# Create a GitHub Actions step for Terraform plan that:
+# - Delegates to infrastructure/scripts/terraform-ci.sh
+# - Passes --action plan --environment dev
+# - Injects secrets as TF_VAR_* env vars (mapbox, google, jwt, gemini, azure_maps)
+# - Uploads the plan file as an artifact with 5-day retention
+
+- name: Terraform Plan (dev)
+  run: ./infrastructure/scripts/terraform-ci.sh --action plan --environment dev
+  env:
+    TF_VAR_mapbox_token: ${{ secrets.TF_VAR_MAPBOX_TOKEN }}
+    TF_VAR_google_client_id: ${{ secrets.TF_VAR_GOOGLE_CLIENT_ID }}
+    TF_VAR_jwt_secret_key: ${{ secrets.TF_VAR_JWT_SECRET_KEY }}
+    TF_VAR_gemini_api_key: ${{ secrets.TF_VAR_GEMINI_API_KEY }}
+    TF_VAR_azure_maps_key: ${{ secrets.TF_VAR_AZURE_MAPS_KEY }}
+
+- uses: actions/upload-artifact@v4
+  with:
+    name: tfplan-dev
+    path: infrastructure/terraform/tfplan-dev.out
+    retention-days: 5
 ```
 
 ---
@@ -276,13 +343,45 @@ resource "azurerm_linux_web_app" "main" {
   }
   
   # VNet integration (conditional)
-  dynamic "virtual_network_subnet_id" {
-    for_each = var.enable_vnet_integration ? [1] : []
-    content {
-      virtual_network_subnet_id = azurerm_subnet.app.id
-    }
-  }
+  virtual_network_subnet_id = var.enable_vnet_integration ? var.app_service_subnet_id : null
 }
+```
+
+Notice the actual code uses a **simple conditional** (`? :`) for VNet integration — not a `dynamic` block. This is cleaner and matches how `modules/compute/main.tf` is actually implemented.
+
+### Pipeline Parallel: Comment-Based Pipeline Generation
+
+Structured comments work for YAML too. Add these to a workflow:
+```yaml
+# =============================================================================
+# Terraform Apply Stage
+# =============================================================================
+# Purpose: Apply approved Terraform changes to dev environment
+# Dependencies: plan-dev job must succeed, push to main branch
+# Security: Uses GitHub Environment 'dev' for deployment tracking
+# Script: Delegates to infrastructure/scripts/terraform-ci.sh
+# =============================================================================
+
+apply-dev:
+  name: 'Apply (dev)'
+  needs: plan-dev
+  runs-on: ubuntu-latest
+  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  environment: dev
+  steps:
+    - uses: actions/checkout@v4
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: '1.7.0'
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - uses: actions/download-artifact@v4
+      with:
+        name: tfplan-dev
+        path: infrastructure/terraform
+    - name: Terraform Apply (dev)
+      run: ./infrastructure/scripts/terraform-ci.sh --action apply --environment dev
 ```
 
 ### Best Practices
@@ -291,6 +390,7 @@ resource "azurerm_linux_web_app" "main" {
 2. **Reference variables by name** - `var.environment`, `var.database_sku`
 3. **Specify security requirements** - TLS, encryption, access controls
 4. **Include output requirements** - What downstream resources need
+5. **For pipelines** - Specify the script path and argument pattern in the comment
 
 ---
 
@@ -460,7 +560,7 @@ Few-shot prompting provides examples of the desired output pattern before reques
 
 ### Pattern: Environment tfvars Generation
 
-**Few-Shot Prompt**:
+**Few-Shot Prompt** (using _actual_ keys from our repo):
 ```
 Here are our existing environment configurations:
 
@@ -469,23 +569,62 @@ Example 1 - dev.tfvars.json:
   "environment": "dev",
   "location": "centralus",
   "resource_group_name": "rg-roadtrip-dev",
+  "project_name": "roadtrip",
   "enable_private_endpoints": false,
   "enable_vnet_integration": false,
   "app_service_sku": "B1",
+  "app_service_os": "Linux",
+  "python_version": "3.12",
   "database_sku": "B_Standard_B1ms",
-  "static_web_app_sku": "Free"
+  "database_storage_mb": 32768,
+  "database_version": "16",
+  "database_backup_retention_days": 7,
+  "database_geo_redundant_backup": false,
+  "static_web_app_sku": "Free",
+  "allowed_origins": ["http://localhost:5173", "http://localhost:3000"],
+  "ai_service_url": "http://localhost:8080",
+  "enable_monitoring": true,
+  "enable_key_vault": false,
+  "enable_auto_scaling": false,
+  "enable_alerts": false,
+  "tags": {
+    "Environment": "Development",
+    "CostCenter": "Engineering",
+    "ManagedBy": "Terraform",
+    "Owner": "DevTeam"
+  }
 }
 
 Example 2 - prod.tfvars.json:
 {
   "environment": "prod",
-  "location": "centralus", 
+  "location": "centralus",
   "resource_group_name": "rg-roadtrip-prod",
+  "project_name": "roadtrip",
   "enable_private_endpoints": true,
   "enable_vnet_integration": true,
+  "vnet_address_space": ["10.0.0.0/16"],
+  "subnet_app_service": "10.0.1.0/24",
+  "subnet_database": "10.0.2.0/24",
+  "subnet_private_endpoints": "10.0.3.0/24",
   "app_service_sku": "P1V3",
   "database_sku": "GP_Standard_D2s_v3",
-  "static_web_app_sku": "Standard"
+  "database_storage_mb": 131072,
+  "database_backup_retention_days": 35,
+  "database_geo_redundant_backup": true,
+  "static_web_app_sku": "Standard",
+  "allowed_origins": ["https://roadtrip.azurestaticapps.net"],
+  "ai_service_url": "https://roadtrip-ai-prod.azurecontainerapps.io",
+  "enable_monitoring": true,
+  "enable_key_vault": true,
+  "enable_auto_scaling": true,
+  "tags": {
+    "Environment": "Production",
+    "CostCenter": "Engineering",
+    "ManagedBy": "Terraform",
+    "Owner": "DevTeam",
+    "Criticality": "High"
+  }
 }
 
 Now generate uat.tfvars.json:
@@ -493,6 +632,8 @@ Now generate uat.tfvars.json:
 - Should have private endpoints (like prod)
 - Can use slightly lower SKUs than prod
 - VNet required for security testing
+- Separate VNet CIDR: 10.1.0.0/16
+- UAT-specific allowed origins
 ```
 
 **Generated uat.tfvars.json**:
@@ -501,17 +642,79 @@ Now generate uat.tfvars.json:
   "environment": "uat",
   "location": "centralus",
   "resource_group_name": "rg-roadtrip-uat",
+  "project_name": "roadtrip",
   "enable_private_endpoints": true,
   "enable_vnet_integration": true,
+  "vnet_address_space": ["10.1.0.0/16"],
+  "subnet_app_service": "10.1.1.0/24",
+  "subnet_database": "10.1.2.0/24",
+  "subnet_private_endpoints": "10.1.3.0/24",
   "app_service_sku": "P1V2",
+  "app_service_os": "Linux",
+  "python_version": "3.12",
   "database_sku": "GP_Standard_D2s_v3",
+  "database_storage_mb": 65536,
+  "database_version": "16",
+  "database_backup_retention_days": 14,
+  "database_geo_redundant_backup": false,
   "static_web_app_sku": "Standard",
+  "allowed_origins": ["https://roadtrip-uat.azurestaticapps.net"],
+  "ai_service_url": "https://roadtrip-ai-uat.azurecontainerapps.io",
+  "enable_monitoring": true,
+  "enable_key_vault": true,
+  "enable_auto_scaling": false,
+  "enable_alerts": true,
   "tags": {
     "Environment": "UAT",
     "CostCenter": "Engineering",
-    "ManagedBy": "Terraform"
+    "ManagedBy": "Terraform",
+    "Owner": "DevTeam"
   }
 }
+```
+
+### Pipeline Parallel: Few-Shot Workflow Environment Matrix
+
+Use few-shot to generate environment-specific pipeline configs:
+```
+Here is how we deploy to dev:
+
+apply-dev:
+  needs: plan-dev
+  runs-on: ubuntu-latest
+  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  environment: dev
+  steps:
+    - run: ./infrastructure/scripts/terraform-ci.sh --action apply --environment dev
+
+Now generate apply-uat with:
+- Needs: plan-uat
+- Only on release branches (release/*)
+- Requires 'uat' environment approval
+- Same script, different --environment flag
+```
+
+**Generated**:
+```yaml
+apply-uat:
+  needs: plan-uat
+  runs-on: ubuntu-latest
+  if: startsWith(github.ref, 'refs/heads/release/')
+  environment: uat
+  steps:
+    - uses: actions/checkout@v4
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: '1.7.0'
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - uses: actions/download-artifact@v4
+      with:
+        name: tfplan-uat
+        path: infrastructure/terraform
+    - name: Terraform Apply (uat)
+      run: ./infrastructure/scripts/terraform-ci.sh --action apply --environment uat
 ```
 
 ### Few-Shot Benefits for IaC
@@ -529,7 +732,7 @@ Now generate uat.tfvars.json:
 
 ### Concept
 
-Integrate Copilot with Terraform validation commands for immediate feedback on generated code quality.
+Integrate Copilot with Terraform validation commands for immediate feedback on generated code quality. Our CI pipeline runs this automatically via `infrastructure/scripts/terraform-ci.sh`.
 
 ### Validation Workflow
 
@@ -550,6 +753,35 @@ terraform validate
 # Step 4: Security scan
 tfsec .
 # Copilot: "Address these security findings: <paste findings>"
+```
+
+### Pipeline Parallel: Validation in CI
+
+Our `terraform.yml` workflow runs this same sequence automatically:
+```yaml
+# From .github/workflows/terraform.yml - validate job
+validate:
+  name: 'Validate'
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: '1.7.0'
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+      working-directory: infrastructure/terraform
+    - name: Terraform Init (no backend)
+      run: terraform init -backend=false
+      working-directory: infrastructure/terraform
+    - name: Terraform Validate
+      run: terraform validate
+      working-directory: infrastructure/terraform
+```
+
+The CI script (`infrastructure/scripts/terraform-ci.sh`) runs the same steps with `--action validate`:
+```bash
+./infrastructure/scripts/terraform-ci.sh --action validate --environment dev
 ```
 
 ### Copilot Integration with Validation Errors
@@ -846,8 +1078,12 @@ Add outputs for the App Service:
 
 | Resource | Location |
 |----------|----------|
-| Definitions Reference | `docs/workshops/00-copilot-definitions-best-practices.md` |
+| Definitions Reference | `docs/workshops/iac/00-copilot-definitions-best-practices.md` |
 | Environment Configs | `infrastructure/terraform/environments/` |
 | Existing Modules | `infrastructure/terraform/modules/` |
-| Pipeline Config | `azure-pipelines.yml` |
+| Terraform CI/CD Workflow | `.github/workflows/terraform.yml` |
+| Terraform CI Script | `infrastructure/scripts/terraform-ci.sh` |
+| Azure DevOps Pipeline | `azure-pipelines.yml` |
+| Terraform Instructions | `.github/instructions/terraform.instructions.md` |
+| CI/CD Instructions | `.github/instructions/cicd.instructions.md` |
 | Backend Dockerfile | `backend/Dockerfile` |

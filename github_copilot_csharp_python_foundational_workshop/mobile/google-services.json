@@ -14,20 +14,20 @@
       },
       "oauth_client": [
         {
-          "client_id": "805801248992-SOMERANDOMAPPID.apps.googleusercontent.com", //REPLACE_ME_WITH_YOUR_REAL_CLIENT_ID
+          "client_id": "REDACTED_OAUTH_CLIENT_ID.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "REPLACE_ME_WITH_YOUR_REAL_API_KEY"
+          "current_key": "REDACTED_FIREBASE_API_KEY"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "805801248992-SOMERANDOMAPPID.apps.googleusercontent.com", //REPLACE_ME_WITH_YOUR_REAL_CLIENT_ID
+              "client_id": "REDACTED_OAUTH_CLIENT_ID.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

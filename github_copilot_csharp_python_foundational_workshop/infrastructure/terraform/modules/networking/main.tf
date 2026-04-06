@@ -78,6 +78,28 @@ resource "azurerm_subnet" "private_endpoints" {
   private_endpoint_network_policies = "Disabled"
 }
 
+# Container Apps Subnet - for BFF, C#, Java microservices
+resource "azurerm_subnet" "container_apps" {
+  count = var.enable_container_apps ? 1 : 0
+
+  name                 = "snet-ca-${var.environment}"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = [var.subnet_container_apps]
+
+  # Required for Container Apps VNet integration
+  delegation {
+    name = "delegation-container-apps"
+
+    service_delegation {
+      name = "Microsoft.App/environments"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action"
+      ]
+    }
+  }
+}
+
 # -----------------------------------------------------------------------------
 # Network Security Groups
 # -----------------------------------------------------------------------------

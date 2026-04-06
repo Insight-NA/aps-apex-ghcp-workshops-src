@@ -13,7 +13,7 @@ By the end of this workshop, you will:
 1. **Copilot Extensions → MCP Servers**: Understand the evolution from Copilot Extensions to Model Context Protocol (MCP) servers and configure live documentation fetching
 2. **MCP Servers**: Configure and use MCP servers (@context7, @azure) to fetch real-time external documentation and execute cloud operations
 3. **Enterprise Policy Management**: Configure organization-wide Copilot policies, content exclusions, and audit settings for governance
-4. **Model Selection & Cost Optimization**: Choose appropriate models (GPT-4o, Claude, o1) based on task complexity and manage API costs
+4. **Model Selection & Cost Optimization**: Choose appropriate models (GPT-4.1, Claude Sonnet 4, Opus 4, o3-mini) based on task complexity and manage premium request allocation
 5. **GitHub Copilot Certification**: Review certification domains and practice exam-style scenarios
 6. **Copilot Spec Kit**: Use the full Spec Kit workflow (@speckit.specify → @speckit.plan → @speckit.tasks → @speckit.implement) for feature development
 7. **Copilot Metrics**: Configure and interpret Copilot usage metrics, acceptance rates, and productivity dashboards
@@ -27,7 +27,7 @@ By the end of this workshop, you will:
 | 0-12 min | Demo 1 | Copilot Extensions → MCP Servers Evolution | Extensions architecture, MCP migration |
 | 12-24 min | Demo 2 | MCP Servers: @context7 & @azure Integration | Live docs, cloud operations |
 | 24-36 min | Demo 3 | Enterprise Policy Management | Org policies, content exclusions |
-| 36-48 min | Demo 4 | Model Selection & Cost Optimization | Model comparison, token economics |
+| 36-48 min | Demo 4 | Model Selection & Cost Optimization | Model comparison, premium requests |
 | 48-60 min | Demo 5 | GitHub Copilot Certification Prep | Exam domains, practice scenarios |
 | 60-75 min | Demo 6 | Copilot Spec Kit Full Workflow | specify → plan → tasks → implement |
 | 75-90 min | Demo 7 | Copilot Metrics & Productivity Dashboard | Usage analytics, ROI measurement |
@@ -75,34 +75,49 @@ Understand how GitHub Copilot Extensions have evolved into the Model Context Pro
 
 ### Live Demo: Configuring MCP Servers
 
-**Step 1: Review VS Code MCP Configuration**
+MCP servers are configured in two ways in VS Code:
+1. **Copilot Agent files** (`.github/copilot-agents/*.agent.md`) — recommended for team sharing
+2. **VS Code settings** (`settings.json`) — for personal/local servers
+3. **GitHub MCP Registry** ([github.com/mcp](https://github.com/mcp)) — discover and install community servers
+
+**Step 1: Review Agent-Based MCP Configuration (Real Example)**
+```yaml
+# File: .github/copilot-agents/context7.agent.md (from this repo)
+---
+name: Context7-Expert
+description: Expert in latest library versions using up-to-date documentation
+argument-hint: 'Ask about specific libraries/frameworks'
+tools: ['read', 'search', 'web', 'context7/*']
+mcp-servers:
+  context7:
+    type: http
+    url: "https://mcp.context7.com/mcp"
+    headers: {"CONTEXT7_API_KEY": "${{ secrets.COPILOT_MCP_CONTEXT7 }}"}
+    tools: ["get-library-docs", "resolve-library-id"]
+handoffs:
+  - label: Implement with Context7
+    agent: agent
+    prompt: Implement the solution using the Context7 best practices.
+    send: false
+---
+```
+
+> **Note**: This repo has **15+ agent files** in `.github/copilot-agents/` including `tdd-red.agent.md`, `tdd-green.agent.md`, `debug.agent.md`, `terraform-azure-planning.agent.md`, and more.
+
+**Step 1b: VS Code settings.json (alternative for local servers)**
 ```json
 // Open VS Code settings.json (Cmd+,)
-// Search: "github.copilot.chat.mcp"
+// Search: "mcp"
 
 {
-  "github.copilot.chat.mcp.servers": {
-    // Context7 - External documentation fetching
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstage/context7-mcp"],
-      "env": {}
-    },
-    
-    // Azure MCP - Cloud resource operations
-    "azure": {
-      "command": "npx", 
-      "args": ["-y", "@azure/mcp-server"],
-      "env": {
-        "AZURE_SUBSCRIPTION_ID": "${env:AZURE_SUBSCRIPTION_ID}"
+  "mcp": {
+    "servers": {
+      // Local MCP server example
+      "my-local-tools": {
+        "command": "npx",
+        "args": ["-y", "@my-org/mcp-server"],
+        "env": {}
       }
-    },
-    
-    // Custom MCP Server (local development)
-    "road-trip-tools": {
-      "command": "node",
-      "args": ["./tools/mcp-server/index.js"],
-      "cwd": "${workspaceFolder}"
     }
   }
 }
@@ -112,32 +127,40 @@ Understand how GitHub Copilot Extensions have evolved into the Model Context Pro
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Copilot Chat                             │
-│                   (VS Code / IDE)                            │
+│            (VS Code / JetBrains / GitHub.com)                │
 └─────────────────────┬───────────────────────────────────────┘
-                      │ JSON-RPC 2.0
+                      │ JSON-RPC 2.0 / HTTP (Streamable)
          ┌────────────┼────────────┬────────────┐
          ▼            ▼            ▼            ▼
    ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-   │@context7 │ │ @azure   │ │@blender  │ │ @custom  │
-   │ (Docs)   │ │ (Cloud)  │ │ (3D)     │ │ (Local)  │
+   │@context7 │ │ @azure   │ │@github   │ │ @custom  │
+   │ (Docs)   │ │ (Cloud)  │ │(Registry)│ │ (Agents) │
    └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘
         │            │            │            │
-   ┌────▼────┐ ┌─────▼────┐ ┌─────▼────┐ ┌─────▼────┐
-   │ Mapbox  │ │  Azure   │ │ Blender  │ │ Your     │
-   │ Stripe  │ │  Portal  │ │  Python  │ │ Tools    │
-   │ React   │ │  CLI     │ │  API     │ │          │
-   └─────────┘ └──────────┘ └──────────┘ └──────────┘
+   ┌────▼────┐ ┌─────▼────┐ ┌─────▼────┐ ┌─────▼────────┐
+   │ Mapbox  │ │  Azure   │ │  GitHub  │ │ .github/     │
+   │ Stripe  │ │  Portal  │ │  MCP     │ │ copilot-     │
+   │ React   │ │  CLI     │ │  Servers │ │ agents/*.md  │
+   └─────────┘ └──────────┘ └──────────┘ └──────────────┘
 ```
 
 **Step 3: MCP Tool Discovery**
 ```bash
 # In Copilot Chat, MCP servers auto-register their tools
-# Type @ to see all available MCP servers
+# Type @ to see all available agents/MCP servers
 
-@context7 - Fetch live documentation for any library
-@azure - Execute Azure CLI commands and resource operations
-@blender - Control Blender 3D modeling (if installed)
+@context7    - Fetch live documentation for any library
+@azure       - Azure resource operations
+@github      - GitHub MCP Registry servers
+@tdd-red     - Write failing tests (TDD Red phase)
+@tdd-green   - Write passing implementation (TDD Green)
+@debug       - Debug and diagnose issues
+@terraform-azure-planning - Plan Terraform infrastructure
+
+# Discover more servers at: https://github.com/mcp
 ```
+
+> **GitHub MCP Registry**: Browse community MCP servers at [github.com/mcp](https://github.com/mcp). For Business/Enterprise orgs, admins must enable MCP policies in org settings before developers can use them.
 
 ### Migration Path: Extension → MCP
 
@@ -163,36 +186,33 @@ export function activate(context: vscode.ExtensionContext) {
 }
 ```
 
-**After (MCP Server)**:
-```typescript
-// New: Standardized MCP server
-// File: tools/mcp-server/index.js
+**After (MCP Agent File)**:
+```yaml
+# New: Standardized agent file with MCP server
+# File: .github/copilot-agents/road-trip-validator.agent.md
+---
+name: Road-Trip-Validator
+description: Validates GeoJSON coordinates and route data
+tools: ['read', 'search']
+mcp-servers:
+  road-trip-tools:
+    type: http
+    url: "http://localhost:3001/mcp"
+    tools: ["validate_coordinates", "check_route"]
+---
 
-import { MCPServer } from '@modelcontextprotocol/server';
+# Road Trip Validator Agent
 
-const server = new MCPServer({
-  name: 'road-trip-tools',
-  version: '1.0.0',
-  description: 'Road Trip Planner development tools'
-});
+You are a coordinate validation assistant.
 
-// Tools auto-discovered by Copilot
-server.registerTool({
-  name: 'validate_coordinates',
-  description: 'Validate GeoJSON coordinate format [lng, lat]',
-  parameters: {
-    type: 'object',
-    properties: {
-      file_path: { type: 'string', description: 'Path to file to validate' }
-    }
-  },
-  handler: async ({ file_path }) => {
-    return await validateCoordinates(file_path);
-  }
-});
-
-server.start();
+## Rules
+- Validate all coordinates are in [longitude, latitude] format
+- Longitude range: -180 to 180
+- Latitude range: -90 to 90
+- Use the validate_coordinates tool for checking files
 ```
+
+> **Key Difference**: Agent files combine instructions + MCP config + handoff rules in one portable markdown file that works across VS Code, JetBrains, and GitHub.com.
 
 ### Teaching Points
 
@@ -201,16 +221,34 @@ server.start();
    - **Ecosystem**: Reuse servers across projects and organizations
    - **Discoverability**: Tools auto-register, no manual configuration
 
-2. **When to Use MCP vs Extensions**:
+2. **When to Use MCP vs Custom Agents**:
    - **MCP Servers**: External integrations, documentation, cloud ops
-   - **Custom Agents**: Project-specific validation, code generation rules
+   - **Custom Agent Files** (`.github/copilot-agents/`): Project-specific validation, TDD workflows, code generation rules
+   - **Reusable Prompts** (`.github/prompts/`): Repeated prompt templates
 
 3. **MCP Server Types**:
    ```
-   Local Servers    → npm packages, local scripts
-   Cloud Servers    → Azure, AWS, GCP integrations  
-   Documentation    → @context7, @docs
-   Specialized      → @blender, @figma, @database
+   Agent Files       → .github/copilot-agents/*.agent.md (team-shared)
+   VS Code Settings  → settings.json mcp config (personal)
+   GitHub Registry   → github.com/mcp (community servers)
+   Cloud Servers     → Azure, AWS, GCP integrations
+   Documentation     → @context7, library docs
+   ```
+
+4. **This Repo's Agent Files** (15+ agents):
+   ```
+   .github/copilot-agents/
+   ├── context7.agent.md          # Live documentation fetching
+   ├── tdd-red.agent.md           # TDD: Write failing tests  
+   ├── tdd-green.agent.md         # TDD: Write passing code
+   ├── tdd-refactor.agent.md      # TDD: Refactor phase
+   ├── debug.agent.md             # Debugging assistant
+   ├── accessibility.agent.md     # A11y auditing
+   ├── terraform-azure-planning.agent.md
+   ├── playwright-tester.agent.md # E2E testing
+   ├── janitor.agent.md           # Code cleanup
+   ├── pre-commit-enforcer.agent.md
+   └── ... and more
    ```
 
 ### Verification
@@ -316,48 +354,59 @@ class VehicleSpecs(BaseModel):
     width_ft: Optional[float] = Field(None, description="Width in feet")
     length_ft: Optional[float] = Field(None, description="Length in feet")
 
-class DirectionsRequest(BaseModel):
-    coordinates: List[List[float]]
-    vehicle_type: str = 'car'  # 'car' | 'rv' | 'truck'
-    vehicle_specs: Optional[VehicleSpecs] = None
+# Note: In this repo, /api/directions is a GET endpoint.
+# The BFF proxies to Java backend: GET /api/directions?coords=lng,lat;lng,lat&profile=driving
+# The existing Python endpoint signature is:
+#   @app.get("/api/directions")
+#   async def get_directions(coords: str, profile: str = "driving")
+# 
+# For vehicle-aware routing, we'd extend the Java backend's GeospatialController:
 
-@app.post("/api/directions")
-async def get_directions(request: DirectionsRequest):
-    """Calculate route with vehicle-aware routing using Mapbox API."""
+@app.get("/api/directions")
+async def get_directions(
+    coords: str,
+    profile: str = "driving",
+    vehicle_type: str = "car",
+    height_ft: Optional[float] = None,
+    weight_tons: Optional[float] = None,
+    width_ft: Optional[float] = None,
+    length_ft: Optional[float] = None
+):
+    """Calculate route with vehicle-aware routing using Mapbox API.
+    
+    Args:
+        coords: Semicolon-separated coordinates "lng,lat;lng,lat"
+        profile: Mapbox profile - 'driving', 'driving-traffic'
+        vehicle_type: 'car' | 'rv' | 'truck'
+    """
     
     # Determine Mapbox profile
-    if request.vehicle_type in ['rv', 'truck']:
-        profile = 'mapbox/driving-traffic'  # ✅ From @context7 docs!
-    else:
-        profile = 'mapbox/driving'
-    
-    # Build coordinates string
-    coords_str = ';'.join([f"{lon},{lat}" for lon, lat in request.coordinates])
+    if vehicle_type in ['rv', 'truck']:
+        profile = 'driving-traffic'  # ✅ From @context7 docs!
     
     # Build URL
     mapbox_token = os.getenv("MAPBOX_TOKEN")
-    url = f"https://api.mapbox.com/directions/v5/{profile}/{coords_str}"
+    url = f"https://api.mapbox.com/directions/v5/mapbox/{profile}/{coords}"
     
     # Base parameters
     params = {
         "access_token": mapbox_token,
         "geometries": "geojson",
-        "overview": "full"
+        "overview": "full",
+        "steps": "true"
     }
     
     # Add vehicle restrictions (convert imperial to metric)
-    if request.vehicle_specs and request.vehicle_type in ['rv', 'truck']:
-        specs = request.vehicle_specs
-        
+    if vehicle_type in ['rv', 'truck']:
         # ✅ Correct conversions from @context7:
-        if specs.height_ft:
-            params['height'] = round(specs.height_ft * 0.3048, 2)  # ft → m
-        if specs.weight_tons:
-            params['weight'] = round(specs.weight_tons * 907.185, 2)  # tons → kg
-        if specs.width_ft:
-            params['width'] = round(specs.width_ft * 0.3048, 2)  # ft → m
-        if specs.length_ft:
-            params['length'] = round(specs.length_ft * 0.3048, 2)  # ft → m
+        if height_ft:
+            params['height'] = round(height_ft * 0.3048, 2)  # ft → m
+        if weight_tons:
+            params['weight'] = round(weight_tons * 907.185, 2)  # tons → kg
+        if width_ft:
+            params['width'] = round(width_ft * 0.3048, 2)  # ft → m
+        if length_ft:
+            params['length'] = round(length_ft * 0.3048, 2)  # ft → m
     
     # Make API call
     async with httpx.AsyncClient() as client:
@@ -380,27 +429,19 @@ async def get_directions(request: DirectionsRequest):
         "routeGeoJSON": route['geometry'],
         "distance": route['distance'],
         "duration": route['duration'],
-        "vehicle_type": request.vehicle_type,
-        "profile_used": profile,
-        "restrictions_applied": request.vehicle_specs is not None
+        "vehicle_type": vehicle_type,
+        "profile_used": f"mapbox/{profile}",
+        "restrictions_applied": vehicle_type in ['rv', 'truck']
     }
 ```
 
 **Step 3: Test with real vehicle specs**
 ```bash
-# Test truck routing with height restriction
-curl -X POST http://localhost:8000/api/directions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "coordinates": [[-122.4194, 37.7749], [-118.2437, 34.0522]],
-    "vehicle_type": "truck",
-    "vehicle_specs": {
-      "height_ft": 13.5,
-      "weight_tons": 12.0,
-      "width_ft": 8.5,
-      "length_ft": 35.0
-    }
-  }'
+# Test truck routing with height restriction (GET with query params)
+curl "http://localhost:3000/api/directions?coords=-122.4194,37.7749;-118.2437,34.0522&vehicle_type=truck&height_ft=13.5&weight_tons=12.0&width_ft=8.5&length_ft=35.0"
+
+# Note: Requests go through the BFF (port 3000) which proxies to:
+#   Java backend (port 8082) for /api/directions
 
 # Expected response:
 # {
@@ -409,6 +450,7 @@ curl -X POST http://localhost:8000/api/directions \
 #   "profile_used": "mapbox/driving-traffic",
 #   "restrictions_applied": true
 # }
+```
 ```
 
 ### Common Copilot Mistakes
@@ -531,18 +573,31 @@ Configure organization-wide GitHub Copilot policies for governance, content excl
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│              GitHub Copilot Policy Hierarchy                 │
+│        GitHub Copilot Governance Hierarchy                  │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
-│  Enterprise Level (github.com/enterprises/ENTERPRISE/settings)
-│  └── Organization Level (github.com/orgs/ORG/settings)       │
-│      └── Repository Level (.github/copilot-policies.yml)     │
-│          └── User Level (VS Code settings.json)              │
+│  1. Enterprise Policies (GitHub.com → Enterprise Settings)    │
+│     └── Feature toggles (Copilot Chat, CLI, etc.)             │
+│     └── MCP server policy (allow/deny)                       │
 │                                                              │
-│  Higher levels override lower levels                         │
+│  2. Organization Policies (GitHub.com → Org Settings)         │
+│     └── Content exclusions (file patterns)                   │
+│     └── Seat management                                     │
+│                                                              │
+│  3. Repository Custom Instructions (in-repo files)            │
+│     └── .github/copilot-instructions.md (repo-wide)           │
+│     └── .github/instructions/*.instructions.md (path-scoped)  │
+│     └── AGENTS.md (coding agent instructions)                │
+│                                                              │
+│  4. User Settings (VS Code / IDE)                             │
+│     └── Personal preferences, model selection                │
+│                                                              │
+│  ⚠️  Higher levels restrict; lower levels cannot override      │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+> **Important**: There is NO `copilot-policies.yml` file. GitHub Copilot policies are configured via the GitHub.com web UI at org/enterprise level. Content exclusions are set in **Organization Settings → Copilot → Content exclusions**.
 
 ### Policy Configuration Files
 
@@ -553,85 +608,105 @@ Settings → Copilot → Policies
 ✅ Copilot in GitHub.com
 ✅ Copilot Chat in IDEs  
 ✅ Copilot CLI
-☐ Copilot for Pull Requests (Disabled)
-☐ Copilot Workspace (Disabled)
+✅ Copilot for Pull Requests
+✅ Copilot Extensions & MCP
 
-Content Exclusions:
+Content Exclusions (Org Settings → Copilot → Content exclusions):
 ├── **/secrets/**
 ├── **/.env*
 ├── **/credentials/**
 └── **/private/**
 ```
 
-**Repository-Level Policy** (`.github/copilot-policies.yml`):
-```yaml
-# File: .github/copilot-policies.yml
-# Repository-specific Copilot configuration
+> **Note**: Content exclusions are configured in the GitHub.com web UI, NOT in a YAML file. Paths use fnmatch syntax and are applied at the organization or repository level.
 
-version: 1
+**Repository-Level Custom Instructions** (`.github/copilot-instructions.md`):
+```markdown
+# File: .github/copilot-instructions.md (from this repo - 471 lines!)
+# This file gives Copilot context about your project
 
-# Content exclusions - files Copilot won't read or suggest from
-content_exclusions:
-  - "**/.env*"
-  - "**/secrets/**"
-  - "**/credentials/**"
-  - "backend/alembic/versions/**"
-  - "**/node_modules/**"
-  - "**/*.pem"
-  - "**/*.key"
+## Architecture Overview
+This is a polyglot microservices road trip planning app with a 
+Node.js BFF routing to Python, C#, and Java backends.
 
-# Model preferences (when available)
-model_preferences:
-  default: "gpt-4o"
-  complex_tasks: "o1-preview"
-  
-# Feature toggles
-features:
-  code_completions: true
-  chat: true
-  cli: true
-  workspace: false  # Disabled for this repo
-  
-# Audit settings
-audit:
-  log_prompts: true
-  log_completions: false  # Don't log generated code
-  retention_days: 90
+## Code Standards (Strictly Enforced)
+- Frontend: React 18+ with TypeScript
+- State Management: Zustand ONLY (NOT Redux)
+- Map Library: React Map GL ONLY (NOT Leaflet)
+- AI Provider: Azure OpenAI (in C# backend, NOT Google Gemini)
+- ORM: SQLAlchemy ONLY in Python
+
+## BFF Route Table
+| Frontend Path | Backend | Service |
+|---|---|---|
+| /api/auth/* | backend-python:8000 | Python |
+| /api/directions* | backend-java:8082 | Java |
+| /api/v1/parse-vehicle | backend-csharp:8081 | C# |
+```
+
+**Path-Scoped Instructions** (`.github/instructions/*.instructions.md`):
+```markdown
+# File: .github/instructions/frontend.instructions.md
+---
+applyTo: "frontend/**"
+---
+
+# Frontend Development Standards
+- Use TypeScript strict mode
+- All components must have prop interfaces
+- Use Zustand for global state, React hooks for local state
+```
+
+**Coding Agent Instructions** (`AGENTS.md`):
+```markdown
+# File: AGENTS.md (root of repo)
+# Instructions specifically for the GitHub Copilot coding agent
+
+## Testing Requirements
+- Run `docker compose up` before integration tests
+- Always run `npm test` in frontend/ before committing
+- Check all backends start without errors
 ```
 
 ### Live Demo: Configure Content Exclusions
 
-**Step 1: Create policy file**
-```bash
-mkdir -p .github
-cat > .github/copilot-policies.yml << 'EOF'
-version: 1
+**Step 1: Configure exclusions in GitHub.com UI**
+```
+# Navigate to: GitHub.com → Organization Settings → Copilot → Content exclusions
+# (or Repository Settings → Copilot → Content exclusions)
 
-content_exclusions:
-  # Secrets and credentials
-  - "**/.env*"
-  - "**/secrets/**"
-  - "**/*.pem"
-  - "**/*.key"
-  
-  # Generated files
-  - "**/node_modules/**"
-  - "**/venv/**"
-  - "**/__pycache__/**"
-  - "**/dist/**"
-  - "**/build/**"
-  
-  # Database migrations (often contain sensitive schema)
-  - "**/alembic/versions/**"
-  - "**/migrations/**"
-  
-  # Test fixtures with sensitive data
-  - "**/fixtures/**"
-  - "**/test_data/**"
-EOF
+# Add exclusion patterns:
+Paths to exclude:
+  "**/.env*"           # Environment files with secrets
+  "**/secrets/**"      # Secrets directory
+  "**/*.pem"           # Certificate files  
+  "**/*.key"           # Private key files
+  "**/alembic/versions/**"  # Database migrations
+  "**/node_modules/**"  # Dependencies
+  "**/venv/**"          # Python virtual env
+  "**/__pycache__/**"   # Python cache
+  "**/dist/**"          # Build outputs
+  "**/fixtures/**"      # Test data
 ```
 
-**Step 2: Test exclusion**
+**Step 2: Create custom instructions file (repo-level)**
+```bash
+# This file already exists in the repo!
+cat .github/copilot-instructions.md | head -20
+
+# To create one for a new repo:
+mkdir -p .github
+cat > .github/copilot-instructions.md << 'EOF'
+# Project Name - AI Coding Guide
+
+## Architecture
+Describe your architecture here so Copilot understands your project.
+
+## Code Standards
+- List your coding conventions
+- Technology choices and constraints
+EOF
+```
 ```bash
 # Create a file that should be excluded
 mkdir -p secrets
@@ -644,7 +719,7 @@ echo "API_KEY=super_secret_123" > secrets/api_keys.txt
 # Response: "I don't have access to files in the secrets folder"
 ```
 
-**Step 3: Verify exclusion in completions**
+**Step 3: Test content exclusion**
 ```python
 # In backend/main.py, try to reference excluded file:
 
@@ -681,10 +756,14 @@ echo "API_KEY=super_secret_123" > secrets/api_keys.txt
 
 ### Teaching Points
 
-1. **Policy Hierarchy**: Enterprise > Org > Repo > User
-2. **Content Exclusions**: Protect secrets, credentials, sensitive IP
-3. **Audit Trail**: Log prompts for compliance (HIPAA, SOC2)
-4. **Feature Toggles**: Enable/disable Copilot features per repo
+1. **Custom Instructions Hierarchy**: Enterprise policies (UI) > Org exclusions (UI) > Repo instructions (`.github/copilot-instructions.md`) > Path-scoped (`.github/instructions/`) > User settings (IDE)
+2. **Content Exclusions**: Configured in GitHub.com org/repo settings UI — **not** in a YAML file. Copilot will not read or suggest from excluded paths.
+3. **Three Instruction File Types**:
+   - `.github/copilot-instructions.md` — repo-wide context (architecture, standards)
+   - `.github/instructions/*.instructions.md` — path-scoped with `applyTo` frontmatter
+   - `AGENTS.md` — instructions for the Copilot coding agent
+4. **Privacy**: GitHub, its affiliates, and third parties **do not** use your code for AI model training. This cannot be enabled. Enterprise customers get additional data protection.
+5. **Audit**: GitHub provides a Copilot audit log for Enterprise organizations
 
 ### Verification
 ```bash
@@ -705,25 +784,28 @@ echo "secret_password=12345" > .env.local
 ## Demo 4: Model Selection & Cost Optimization (12 min)
 
 ### Objective
-Choose the right AI model for each task and understand token economics for cost management.
+Choose the right AI model for each task and understand premium request allocation for cost management.
 
-### Available Models in GitHub Copilot
+### Available Models in GitHub Copilot (2025)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    GitHub Copilot Model Selection                        │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  Model          │ Best For                    │ Speed   │ Cost/1K tokens│
-│  ───────────────┼─────────────────────────────┼─────────┼───────────────│
-│  GPT-4o         │ General coding, chat        │ Fast    │ $0.005        │
-│  GPT-4o-mini    │ Simple completions          │ Fastest │ $0.00015      │
-│  Claude 3.5     │ Complex reasoning, docs     │ Medium  │ $0.003        │
-│  Claude Opus 4  │ Expert analysis, refactoring│ Slower  │ $0.015        │
-│  o1-preview     │ Complex algorithms, math    │ Slowest │ $0.015        │
-│  o1-mini        │ Reasoning tasks, lower cost │ Medium  │ $0.003        │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                    GitHub Copilot Model Selection (2025)                      │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  Model            │ Best For                     │ Speed   │ Request Type    │
+│  ─────────────────┼──────────────────────────────┼─────────┼─────────────────│
+│  GPT-4.1          │ General coding, chat         │ Fast    │ Base            │
+│  Claude Sonnet 4  │ Complex reasoning, docs      │ Fast    │ Base            │
+│  Gemini 2.5 Pro   │ Large context, multimodal    │ Fast    │ Base            │
+│  Claude Opus 4    │ Expert analysis, refactoring │ Slower  │ Premium (×1)    │
+│  o3-mini          │ Math reasoning, algorithms   │ Medium  │ Premium (×1)    │
+│  o4-mini          │ Complex reasoning, lower cost│ Medium  │ Premium (×1)    │
+│                                                                               │
+│  Note: Base models are included in your seat. Premium models consume          │
+│  premium requests from your monthly allocation.                               │
+│                                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Model Selection Strategy
@@ -731,56 +813,57 @@ Choose the right AI model for each task and understand token economics for cost 
 **Live Demo: Choose Model Based on Task**
 
 ```python
-# Scenario 1: Simple code completion (use GPT-4o-mini)
+# Scenario 1: Simple code completion (use GPT-4.1 — base model)
 # Task: Add a type hint to a function
 def calculate_distance(lat1, lng1, lat2, lng2):  # Add type hints
 
-# In VS Code settings:
-# "github.copilot.advanced.model": "gpt-4o-mini"
-# → Fastest, cheapest for simple tasks
+# In VS Code:
+# Click model dropdown in Copilot Chat panel → GPT-4.1
+# → Fast base model, no premium request cost
 
 
-# Scenario 2: Complex refactoring (use Claude Opus 4)
+# Scenario 2: Complex refactoring (use Claude Sonnet 4 or Opus 4)
 # Task: Refactor entire module to use async/await pattern
 
 # In Copilot Chat:
-# Model selector → Claude Opus 4.5
+# Model selector (dropdown) → Claude Sonnet 4
 # "Refactor backend/main.py to use async database connections"
 # → Best for understanding complex code structure
 
 
-# Scenario 3: Algorithm design (use o1-preview)
+# Scenario 3: Algorithm design (use o3-mini or o4-mini)
 # Task: Implement Haversine distance with optimizations
 
 # In Copilot Chat:
-# Model selector → o1-preview
+# Model selector (dropdown) → o3-mini
 # "Implement optimized Haversine formula for batch coordinate distance calculations"
 # → Best for mathematical reasoning
 ```
 
-### Token Economics
+### Premium Request Billing Model
 
-**Understanding Token Costs**:
+**Understanding GitHub Copilot Billing**:
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Token Calculation                        │
+│              Premium Request Billing Model                    │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
-│  Example Prompt:                                             │
-│  "Write a FastAPI endpoint that validates coordinates"       │
-│  └── ~12 tokens (input)                                      │
+│  GitHub Copilot uses SEAT-BASED pricing, NOT per-token.      │
 │                                                              │
-│  Generated Code Response:                                    │
-│  @app.post("/api/validate")                                 │
-│  async def validate_coordinates(coords: List[float]):        │
-│      if len(coords) != 2:                                    │
-│          raise HTTPException(400, "Invalid coordinates")     │
-│      return {"valid": True}                                  │
-│  └── ~45 tokens (output)                                     │
+│  Plan         │ Price      │ Premium Requests/mo             │
+│  ─────────────┼────────────┼─────────────────────────────────│
+│  Free         │ $0         │ Limited (2,000 completions +    │
+│               │            │   50 chat messages/mo)          │
+│  Pro          │ $10/mo     │ Unlimited base + premium pool   │
+│  Pro+         │ $39/mo     │ Unlimited base + larger pool    │
+│  Business     │ $19/seat   │ Unlimited base + premium pool   │
+│  Enterprise   │ $39/seat   │ Unlimited base + premium pool   │
 │                                                              │
-│  Total: 57 tokens                                            │
-│  Cost (GPT-4o): 57 × $0.005/1K = $0.000285                  │
-│  Cost (Claude Opus): 57 × $0.015/1K = $0.000855             │
+│  Base models (GPT-4.1, Claude Sonnet 4): No premium cost    │
+│  Premium models (Opus 4, o3-mini, o4-mini): 1 premium req   │
+│                                                              │
+│  No per-token billing. No surprise overages.                 │
+│  Premium requests reset monthly.                             │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -791,19 +874,19 @@ def calculate_distance(lat1, lng1, lat2, lng2):  # Add type hints
 ```yaml
 # Recommended model by task type:
 
-Simple Tasks (GPT-4o-mini - cheapest):
+Simple Tasks (GPT-4.1 / Claude Sonnet 4 — base, no premium cost):
   - Type hints
   - Import statements
   - Simple completions
   - Variable naming
 
-Standard Tasks (GPT-4o - balanced):
+Standard Tasks (GPT-4.1 / Gemini 2.5 Pro — base, no premium cost):
   - Function implementation
   - Bug fixes
   - Unit tests
   - Documentation
 
-Complex Tasks (Claude Opus 4 / o1):
+Complex Tasks (Claude Opus 4 / o3-mini / o4-mini):
   - Architecture decisions
   - Multi-file refactoring
   - Algorithm optimization
@@ -813,71 +896,86 @@ Complex Tasks (Claude Opus 4 / o1):
 **Strategy 2: Context Window Management**
 ```python
 # ❌ Expensive: Large context, simple question
-# Sends entire 1000-line file + question = ~20K tokens
+# Sends entire 1000-line file + question
 
 @workspace Explain line 45 of main.py  # Bad: reads whole file
 
-# ✅ Efficient: Minimal context
-# Only send relevant code snippet = ~200 tokens
+# ✅ Efficient: Minimal context with #file reference
+# Only sends the specified file as context
 
-@workspace #file:backend/main.py:40-50 Explain this code  # Good: specific range
+#file:backend/main.py Explain the get_directions function  # Good: specific file
 ```
 
-**Strategy 3: Caching Repeated Queries**
+> **Note**: The `#file:path:line-range` syntax (e.g., `#file:backend/main.py:40-50`) is NOT supported. Use `#file:path` to reference an entire file, or select specific lines in the editor before prompting.
+
+**Strategy 3: Use Base Models for Routine Work**
+```
+# Instead of always using premium models:
+
+✅ GPT-4.1 / Claude Sonnet 4 (base, no premium cost):
+  - Code completions, unit tests, documentation
+  - Bug fixes, simple refactoring
+  - Most day-to-day development
+
+💠 Claude Opus 4 / o4-mini (premium requests):
+  - Complex multi-file refactoring
+  - Architecture design decisions
+  - Security analysis
+  - Reserve for high-value tasks
+```
+
+### Live Demo: Monitor Premium Request Usage
+
+**Step 1: Check usage in GitHub.com**
 ```bash
-# VS Code settings for response caching
-{
-  "github.copilot.advanced.cacheResponses": true,
-  "github.copilot.advanced.cacheTTLSeconds": 3600
-}
-
-# Identical prompts within 1 hour use cached response (0 tokens)
+# Navigate to: GitHub.com → Settings → Copilot → Usage
+# Shows: Premium requests used / total allocation
+# Resets monthly
 ```
 
-### Live Demo: Monitor Token Usage
-
-**Step 1: Enable token logging**
-```json
-// VS Code settings.json
-{
-  "github.copilot.advanced.debug.showTokenCount": true
-}
-```
-
-**Step 2: View token count in output**
+**Step 2: View model in Copilot Chat**
 ```bash
-# VS Code Output panel → GitHub Copilot
-# Look for: "Prompt tokens: 234, Completion tokens: 156"
+# In Copilot Chat:
+# Click the model name dropdown at the top of the chat panel
+# See which model is currently selected
+# Switch models based on task complexity
 ```
 
-**Step 3: Estimate monthly cost**
+**Step 3: Estimate team costs**
 ```python
-# Quick cost calculator
-daily_prompts = 200
-avg_tokens_per_prompt = 300  # input + output
-model_cost_per_1k = 0.005  # GPT-4o
+# Quick cost calculator for team planning
+team_size = 15
+plan = "Business"  # $19/seat/month
+monthly_seat_cost = 19
 
-monthly_cost = (daily_prompts * avg_tokens_per_prompt * 30 * model_cost_per_1k) / 1000
-print(f"Estimated monthly cost: ${monthly_cost:.2f}")
-# Output: Estimated monthly cost: $0.90
+monthly_cost = team_size * monthly_seat_cost
+annual_cost = monthly_cost * 12
+
+print(f"Monthly team cost: ${monthly_cost:,.2f}")  # $285.00
+print(f"Annual team cost: ${annual_cost:,.2f}")    # $3,420.00
+
+# Note: Premium requests are included in seat cost.
+# No per-token billing. No surprise overages.
 ```
 
 ### Teaching Points
 
 1. **Model Selection Heuristic**:
-   - Start with GPT-4o-mini for speed
-   - Upgrade to GPT-4o if quality insufficient
-   - Use o1/Claude only for complex reasoning
+   - Start with the default model (GPT-4.1 or Claude Sonnet 4)
+   - Switch to premium models only for complex reasoning tasks
+   - Use the model dropdown in Copilot Chat to switch
 
-2. **Cost Factors**:
-   - Input tokens (your prompt + context)
-   - Output tokens (generated code)
-   - Model selection (3-10x cost difference)
+2. **Billing Model**:
+   - Copilot uses **premium requests** per seat, NOT per-token billing
+   - Base models (GPT-4.1, Sonnet 4, Gemini 2.5 Pro) — effectively unlimited
+   - Premium models (Opus 4, o4-mini) — consume premium request quota
+   - No surprise overages or usage-based billing
 
 3. **Optimization Levers**:
-   - Reduce context window size
-   - Cache repeated queries
-   - Use cheaper models for simple tasks
+   - Use `#file:path` to limit context to relevant files
+   - Use base models for routine coding tasks
+   - Reserve premium models for complex reasoning
+   - Select relevant code in the editor before prompting
 
 ---
 
@@ -984,29 +1082,38 @@ Answer: B - TDD workflow starts with @tdd-red to write failing tests first
 
 **Practice Question 5**:
 ```
-Q: When should you use Plan Mode vs Ask Mode in Copilot Chat?
+Q: What are the four chat modes available in GitHub Copilot Chat?
 
-A) Plan Mode for questions, Ask Mode for multi-file changes
-B) Plan Mode for multi-step tasks, Ask Mode for quick questions
-C) They are identical, just different names
-D) Plan Mode is deprecated
+A) Chat, Complete, Review, Fix
+B) Ask, Edit, Agent, Plan
+C) Prompt, Generate, Refactor, Test
+D) Simple, Advanced, Expert, Auto
 
-Answer: B - Plan Mode creates execution plans for complex tasks, 
-            Ask Mode for direct Q&A
+Answer: B - The four official modes are:
+  - Ask: Quick questions and answers (read-only)
+  - Edit: Modify code in the editor
+  - Agent: Autonomous multi-step task execution
+  - Plan: Create execution plans before implementing
+  
+  Select via the mode dropdown at the top of the Chat panel.
 ```
 
 ### Domain 4: Enterprise & Privacy (25%)
 
 **Practice Question 6**:
 ```
-Q: Which file should contain repository-level Copilot content exclusions?
+Q: Where should you define project context and coding standards for 
+   GitHub Copilot at the repository level?
 
 A) .gitignore
-B) .github/copilot-policies.yml
+B) .github/copilot-instructions.md
 C) copilot.config.json
 D) .vscode/settings.json
 
-Answer: B - Repository policies go in .github/copilot-policies.yml
+Answer: B - .github/copilot-instructions.md provides repo-wide custom 
+            instructions. For path-scoped instructions, use 
+            .github/instructions/*.instructions.md with applyTo frontmatter.
+            Content exclusions are configured separately in the GitHub.com UI.
 ```
 
 **Practice Question 7**:
@@ -1014,12 +1121,46 @@ Answer: B - Repository policies go in .github/copilot-policies.yml
 Q: By default, does GitHub Copilot store or train on your private code?
 
 A) Yes, all code is used for training
-B) No, Copilot does not retain prompts or suggestions
+B) No, Copilot does not retain prompts or suggestions, and your code is 
+   never used for training AI models
 C) Only if you opt-in to telemetry
 D) Only code from public repositories
 
-Answer: B - Copilot does not retain prompts or suggestions by default.
-            Enterprise customers have additional data protection guarantees.
+Answer: B - GitHub, its affiliates, and third parties will NOT use your 
+            data to train AI models. This is not configurable — it cannot 
+            be enabled. Copilot does not retain prompts or suggestions.
+            Enterprise customers have additional data protection guarantees
+            including SOC 2 Type II compliance.
+```
+
+**Practice Question 8** (NEW):
+```
+Q: What is the GitHub Copilot coding agent?
+
+A) A VS Code extension for pair programming
+B) An autonomous agent that works on GitHub Issues in the background,
+   creating PRs from its own branch
+C) A CLI tool for generating code
+D) A marketplace extension for code review
+
+Answer: B - The Copilot coding agent (powered by Copilot agent mode) can be 
+            assigned to GitHub Issues. It creates a branch, makes changes, 
+            runs CI, and opens a PR — all autonomously. Configure with 
+            AGENTS.md in your repo root.
+```
+
+**Practice Question 9** (NEW):
+```
+Q: What is the correct way to share MCP server configuration with your team?
+
+A) Each developer configures settings.json manually
+B) Use .github/copilot-agents/*.agent.md files with mcp-servers frontmatter
+C) Create a shared VS Code profile
+D) Use .github/copilot-policies.yml
+
+Answer: B - Agent files in .github/copilot-agents/ are committed to the repo 
+            and shared with the team. They support MCP server configuration 
+            via inline YAML frontmatter with HTTP transport.
 ```
 
 ### Exam Tips
@@ -1030,11 +1171,15 @@ Answer: B - Copilot does not retain prompts or suggestions by default.
    - Hands-on practice (most important!)
 
 2. **Key Topics to Master**:
-   - MCP servers vs Extensions
+   - MCP servers and agent files (`.github/copilot-agents/`)
    - Prompt engineering techniques
-   - Content exclusion policies
-   - Model selection criteria
+   - Custom instructions (`.github/copilot-instructions.md`)
+   - Content exclusions (GitHub.com org settings)
+   - Model selection and premium requests
+   - Chat modes: Ask, Edit, Agent, Plan
    - TDD workflow with agents
+   - Copilot coding agent and AGENTS.md
+   - GitHub MCP Registry
 
 3. **Practice Strategy**:
    - Use Copilot daily for 2+ weeks
@@ -1110,14 +1255,14 @@ Implement ROADMAP Issue #14: AI Trip Generation feature. The "AI Trip Planner" b
 Feature Request:
 - User clicks "AI Trip Planner" button in StartTripView.tsx
 - Modal opens with inputs: duration, interests, start location, destination
-- Backend calls Google Gemini API with structured prompt
-- Gemini returns suggested stops with descriptions
+- Backend calls Azure OpenAI API via C# backend with structured prompt
+- Azure OpenAI returns suggested stops with descriptions
 - Backend geocodes locations using Azure Maps API
 - Frontend displays generated trip in itinerary view
 
 Acceptance Criteria:
 - User can generate trip from natural language
-- AI suggests 3-5 stops based on interests
+- AI suggests 3-5 stops based on interests (via Azure OpenAI)
 - All locations have valid coordinates
 - Route displays on map
 - User can edit AI-generated trip before saving
@@ -1163,9 +1308,9 @@ Focus on:
 **Estimate**: 16-20 hours
 
 ## Phase 1: Backend API (8 hours)
-- Create `/api/ai/generate-trip` endpoint
-- Implement Gemini prompt template
-- Add geocoding with Azure Maps
+- Create `/api/v1/generate-trip` endpoint in C# backend
+- Implement Azure OpenAI prompt template
+- Add geocoding via Java backend's Azure Maps integration
 - Add validation logic
 
 ## Phase 2: Frontend Modal (4 hours)
@@ -1195,23 +1340,23 @@ Focus on:
 - [ ] Add AITripGenerateResponse schema
 **File**: backend/schemas.py
 
-## Task 2: Implement Gemini prompt (2 hours)
-- [ ] Create generate_trip_itinerary() function
-- [ ] Design prompt template
+## Task 2: Implement Azure OpenAI prompt (2 hours)
+- [ ] Create GenerateTripItinerary() method
+- [ ] Design prompt template  
 - [ ] Parse AI response
-**File**: backend/ai_service.py
+**File**: backend-csharp/Services/AiParsingService.cs
 
 ## Task 3: Add geocoding (2 hours)
-- [ ] Create geocode_location() function
-- [ ] Call Azure Maps API
+- [ ] Call Java backend's geocoding endpoint
+- [ ] Proxy through BFF: POST /api/geocode
 - [ ] Handle errors
-**File**: backend/main.py
+**File**: backend-csharp/Services/TripGenerationService.cs
 
 ## Task 4: Create API endpoint (2 hours)
-- [ ] Add POST /api/ai/generate-trip
+- [ ] Add POST /api/v1/generate-trip
 - [ ] Orchestrate AI + geocoding + routing
 - [ ] Return complete trip
-**File**: backend/main.py
+**File**: backend-csharp/Controllers/TripController.cs
 ```
 
 **Step 4: Execute implementation with @speckit.implement**
@@ -1537,16 +1682,24 @@ Actions:
 
 ### Model Selection Guide
 ```
-Simple tasks (completions, type hints) → GPT-4o-mini
-Standard tasks (functions, tests)     → GPT-4o
-Complex tasks (refactoring, arch)     → Claude Opus 4
-Algorithm design (math, logic)        → o1-preview
+Base models (included in seat, no premium cost):
+  Simple + standard tasks → GPT-4.1 / Claude Sonnet 4
+  Large context work      → Gemini 2.5 Pro
+
+Premium models (consume premium requests):
+  Complex refactoring     → Claude Opus 4
+  Math / algorithm design → o3-mini / o4-mini
 ```
 
-### Policy Files
+### Custom Instruction Files
 ```
-.github/copilot-policies.yml    # Repository-level policies
-.github/copilot-instructions.md # Coding standards for Copilot
+.github/copilot-instructions.md              # Repo-wide instructions (always active)
+.github/instructions/*.instructions.md       # Path-scoped instructions (applyTo frontmatter)
+.github/copilot-agents/*.agent.md            # Agent files (MCP servers, custom agents)
+.github/prompts/*.prompt.md                  # Reusable prompt templates
+AGENTS.md                                    # Coding agent instructions (any directory)
+
+Note: Policies are configured via GitHub.com UI, NOT via YAML files.
 ```
 
 ### Metrics API
@@ -1556,10 +1709,10 @@ curl -H "Authorization: Bearer $TOKEN" \
 ```
 
 ### Certification Study Topics
-1. Copilot Features (25%) - MCP, Chat, completions
-2. Prompt Engineering (25%) - Chain-of-thought, few-shot
-3. Developer Workflows (25%) - TDD, Plan Mode
-4. Enterprise & Privacy (25%) - Policies, exclusions
+1. Copilot Features (25%) - MCP, Chat modes (Ask/Edit/Agent/Plan), completions
+2. Prompt Engineering (25%) - Chain-of-thought, few-shot, custom instructions
+3. Developer Workflows (25%) - TDD, agent files, coding agent, spec kits
+4. Enterprise & Privacy (25%) - Premium requests, content exclusions, privacy
 
 ---
 

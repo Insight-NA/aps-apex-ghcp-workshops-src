@@ -112,17 +112,19 @@ module "networking" {
 
   count = local.should_enable_vnet_integration ? 1 : 0
 
-  resource_group_name      = azurerm_resource_group.main.name
-  location                 = azurerm_resource_group.main.location
-  environment              = var.environment
-  project_name             = var.project_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  environment         = var.environment
+  project_name        = var.project_name
 
   vnet_address_space       = var.vnet_address_space
   subnet_app_service       = var.subnet_app_service
   subnet_database          = var.subnet_database
   subnet_private_endpoints = var.subnet_private_endpoints
+  subnet_container_apps    = var.subnet_container_apps
 
   enable_private_endpoints = local.should_enable_private_endpoints
+  enable_container_apps    = var.enable_container_apps
 
   tags = local.common_tags
 
@@ -143,18 +145,18 @@ module "compute" {
   project_name        = var.project_name
   resource_suffix     = local.resource_suffix
 
-  app_service_sku     = var.app_service_sku
-  app_service_os      = var.app_service_os
-  python_version      = var.python_version
-  static_web_app_sku  = var.static_web_app_sku
+  app_service_sku    = var.app_service_sku
+  app_service_os     = var.app_service_os
+  python_version     = var.python_version
+  static_web_app_sku = var.static_web_app_sku
 
   # VNet integration (only if enabled)
   enable_vnet_integration = local.should_enable_vnet_integration
   app_service_subnet_id   = local.should_enable_vnet_integration ? module.networking[0].subnet_app_service_id : null
 
   # Environment variables for the app
-  allowed_origins  = var.allowed_origins
-  ai_service_url   = var.ai_service_url
+  allowed_origins = var.allowed_origins
+  ai_service_url  = var.ai_service_url
 
   # Staging slot for production environments
   enable_staging_slot = local.is_production
@@ -178,18 +180,18 @@ module "database" {
   project_name        = var.project_name
   resource_suffix     = local.resource_suffix
 
-  database_sku              = var.database_sku
-  database_storage_mb       = var.database_storage_mb
-  database_version          = var.database_version
-  database_admin_username   = local.database_admin_username
-  database_admin_password   = local.database_password
-  backup_retention_days     = var.database_backup_retention_days
-  geo_redundant_backup      = var.database_geo_redundant_backup
+  database_sku            = var.database_sku
+  database_storage_mb     = var.database_storage_mb
+  database_version        = var.database_version
+  database_admin_username = local.database_admin_username
+  database_admin_password = local.database_password
+  backup_retention_days   = var.database_backup_retention_days
+  geo_redundant_backup    = var.database_geo_redundant_backup
 
   # VNet integration (only if enabled)
-  enable_private_endpoint   = local.should_enable_private_endpoints
-  delegated_subnet_id       = local.should_enable_private_endpoints ? module.networking[0].subnet_database_id : null
-  private_dns_zone_id       = local.should_enable_private_endpoints ? module.networking[0].private_dns_zone_postgres_id : null
+  enable_private_endpoint = local.should_enable_private_endpoints
+  delegated_subnet_id     = local.should_enable_private_endpoints ? module.networking[0].subnet_database_id : null
+  private_dns_zone_id     = local.should_enable_private_endpoints ? module.networking[0].private_dns_zone_postgres_id : null
 
   # Firewall rules (allow Azure services for dev, private only for prod)
   allow_azure_services = !local.should_enable_private_endpoints
@@ -235,13 +237,17 @@ module "security" {
 
   # Secrets to store
   secrets = {
-    "mapbox-token"              = var.mapbox_token
-    "google-client-id"          = var.google_client_id
-    "jwt-secret-key"            = var.jwt_secret_key
-    "gemini-api-key"            = var.gemini_api_key
-    "azure-maps-key"            = var.azure_maps_key
-    "database-password"         = local.database_password
+    "mapbox-token"               = var.mapbox_token
+    "google-client-id"           = var.google_client_id
+    "jwt-secret-key"             = var.jwt_secret_key
+    "gemini-api-key"             = var.gemini_api_key
+    "azure-maps-key"             = var.azure_maps_key
+    "database-password"          = local.database_password
     "database-connection-string" = "postgresql://${local.database_admin_username}:${local.database_password}@${module.database.server_fqdn}:5432/roadtrip?sslmode=require"
+    # Azure OpenAI secrets for C# backend (Container Apps)
+    "azure-openai-endpoint"   = var.azure_openai_endpoint
+    "azure-openai-api-key"    = var.azure_openai_api_key
+    "azure-openai-deployment" = var.azure_openai_deployment
   }
 
   tags = local.common_tags
@@ -282,6 +288,56 @@ module "monitoring" {
   tags = local.common_tags
 
   depends_on = [azurerm_resource_group.main, module.compute, module.database]
+}
+
+# -----------------------------------------------------------------------------
+# Module: Container Apps (Polyglot Microservices)
+# -----------------------------------------------------------------------------
+# Creates Container Apps Environment and Container Apps for:
+# - BFF (Node.js) - External ingress, API gateway
+# - C# Backend (ASP.NET) - Internal ingress, AI services
+# - Java Backend (Spring Boot) - Internal ingress, geospatial services
+
+module "container_apps" {
+  source = "./modules/container-apps"
+
+  count = var.enable_container_apps ? 1 : 0
+
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  environment         = var.environment
+  project_name        = var.project_name
+  resource_suffix     = local.resource_suffix
+
+  # Log Analytics integration
+  log_analytics_workspace_id = local.should_enable_monitoring ? module.monitoring[0].log_analytics_workspace_id : null
+
+  # VNet integration (only if enabled)
+  enable_vnet_integration  = local.should_enable_vnet_integration
+  container_apps_subnet_id = local.should_enable_vnet_integration ? module.networking[0].subnet_container_apps_id : null
+
+  # Key Vault for RBAC
+  key_vault_id = local.should_enable_key_vault ? module.security[0].key_vault_id : null
+
+  # Python backend URL (App Service)
+  python_backend_url = module.compute.app_service_default_hostname
+  allowed_origins    = var.allowed_origins
+
+  # Container App configurations
+  bff_config    = var.bff_config
+  csharp_config = var.csharp_config
+  java_config   = var.java_config
+
+  # Secrets for container apps
+  azure_openai_endpoint   = var.azure_openai_endpoint
+  azure_openai_api_key    = var.azure_openai_api_key
+  azure_openai_deployment = var.azure_openai_deployment
+  mapbox_token            = var.mapbox_token
+  azure_maps_key          = var.azure_maps_key
+
+  tags = local.common_tags
+
+  depends_on = [azurerm_resource_group.main, module.compute, module.monitoring]
 }
 
 # -----------------------------------------------------------------------------
