@@ -71,7 +71,18 @@ Edit `app.json` and replace the placeholder with your actual key:
 }
 ```
 
-### 4. Configure Google OAuth
+### 4. Configure Firebase (google-services.json)
+
+`google-services.json` contains project-specific keys and is **git-ignored** — it must never be committed.
+
+1. Copy the sample file:
+   ```bash
+   cp google-services.json.example google-services.json
+   ```
+2. Go to your [Firebase Console](https://console.firebase.google.com/) project settings, download the real `google-services.json` for your Android app, and replace the copied file with it.
+3. If you don't have a Firebase project yet, create one and register the Android app with package name `com.hlucianojr.roadtrip`.
+
+### 5. Configure Google OAuth
 
 #### Create OAuth Credentials
 

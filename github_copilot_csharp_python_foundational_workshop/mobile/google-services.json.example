@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "805801248992",
-    "project_id": "road-trip-177bc",
-    "storage_bucket": "road-trip-177bc.firebasestorage.app"
+    "project_number": "YOUR_PROJECT_NUMBER",
+    "project_id": "YOUR_FIREBASE_PROJECT_ID",
+    "storage_bucket": "YOUR_FIREBASE_PROJECT_ID.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:805801248992:android:c2956cae352886511a2885",
+        "mobilesdk_app_id": "YOUR_MOBILE_SDK_APP_ID",
         "android_client_info": {
           "package_name": "com.hlucianojr.roadtrip"
         }
       },
       "oauth_client": [
         {
-          "client_id": "REDACTED_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+          "client_id": "YOUR_OAUTH_CLIENT_ID.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "REDACTED_FIREBASE_API_KEY"
+          "current_key": "YOUR_FIREBASE_API_KEY"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "REDACTED_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+              "client_id": "YOUR_OAUTH_CLIENT_ID.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

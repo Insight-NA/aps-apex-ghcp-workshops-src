@@ -158,6 +158,10 @@ mobile/.vscode/
 mobile/ios/
 mobile/android/
 
+# Firebase config (contains API keys/secrets - never commit)
+google-services.json
+GoogleService-Info.plist
+
 # Frontend testing
 frontend/coverage/
 
